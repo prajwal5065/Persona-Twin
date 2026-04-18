@@ -9,22 +9,26 @@ class LLMService:
         genai.configure(api_key=self.api_key)
         self.model = genai.GenerativeModel('gemini-1.5-flash')
 
-    def generate_response(self, prompt: str, context: str = "") -> str:
+    def generate_response(self, prompt: str, context: str = "", style_profile: str = "") -> str:
         """
-        Generates a response from Gemini using the provided prompt and context.
+        Generates a response from Gemini using the provided prompt, context, and persona style.
         """
-        full_prompt = f"""
-        You are a personal AI twin. Use the following context (past memories/notes) to answer the user's question.
-        If the context doesn't contain relevant information, answer to the best of your ability using your general knowledge, 
-        but prioritize the context provided.
+        system_instructions = f"""
+        You are the user's digital twin. Your goal is to respond to questions in a way that feels authentic to the user's own voice.
+        
+        ADOPT THIS STYLE:
+        {style_profile if style_profile else "Helpful, clear, and natural."}
 
-        Context:
-        {context}
+        USE THIS CONTEXT (Past Memories/Notes):
+        {context if context else "No specific matching memories found."}
 
-        Question:
-        {prompt}
-
-        Answer:
+        Ensure your response:
+        1. Mimics the tone and sentence structure described in the Style Profile.
+        2. Incorporates facts or preferences found in the Context.
+        3. Sounds like the user themselves speaking, rather than an AI assistant.
         """
+
+        full_prompt = f"{system_instructions}\n\nUser Question: {prompt}\n\nDigital Twin Response:"
+        
         response = self.model.generate_content(full_prompt)
         return response.text
