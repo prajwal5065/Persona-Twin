@@ -1,24 +1,19 @@
-import google.generativeai as genai
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from backend.app.models.note import Note
-from backend.config import get_settings
+from .llm import LLMService
 from collections import Counter
 from datetime import datetime
 from typing import List, Dict, Any
 
-settings = get_settings()
-
 class InsightService:
-    def __init__(self, db: Session, api_key: str = None):
+    def __init__(self, db: Session, llm_service: LLMService = None):
         self.db = db
-        api_key = api_key or settings.GOOGLE_API_KEY
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        self.llm = llm_service or LLMService()
 
     def get_user_insights(self) -> Dict[str, Any]:
         """
-        Analyzes user notes to detect behavioral patterns and generate qualitative insights.
+        Analyzes user notes to detect behavioral patterns and generate qualitative insights via OpenAI.
         """
         notes = self.db.query(Note).all()
         if not notes:
@@ -30,21 +25,14 @@ class InsightService:
 
         # 1. Study Time Trends
         hours = [note.created_at.hour for note in notes]
-        hour_counts = Counter(hours)
         
         # Determine most active time of day
-        hour_to_label = {
-            range(0, 6): "Late Night",
-            range(6, 12): "Morning",
-            range(12, 18): "Afternoon",
-            range(18, 24): "Evening"
-        }
-        
-        activity_by_period = {label: 0 for label in hour_to_label.values()}
+        activity_by_period = {"Morning": 0, "Afternoon": 0, "Evening": 0, "Late Night": 0}
         for hour in hours:
-            for r, label in hour_to_label.items():
-                if hour in r:
-                    activity_by_period[label] += 1
+            if 6 <= hour < 12: activity_by_period["Morning"] += 1
+            elif 12 <= hour < 18: activity_by_period["Afternoon"] += 1
+            elif 18 <= hour < 24: activity_by_period["Evening"] += 1
+            else: activity_by_period["Late Night"] += 1
         
         most_active_period = max(activity_by_period, key=activity_by_period.get)
         
@@ -54,7 +42,7 @@ class InsightService:
         avg_freq = total_notes / days_since_start
 
         # 3. Qualitative Analysis using LLM
-        note_summaries = "\n".join([n.content[:100] for n in notes[-30:]]) # last 30 notes
+        note_summaries = "\n".join([n.content[:100] for n in notes[-15:]]) 
         
         prompt = f"""
         Based on these behavioral statistics and recent note samples, generate 3 unique insights about the user.
@@ -67,12 +55,13 @@ class InsightService:
         Recent Note Samples:
         {note_summaries}
         
-        Return exactly 3 bullet points of insights. Be conversational and observational.
-        Example: "You seem to focus on productivity in the mornings but get more reflective after 8 PM."
+        Return exactly 3 bullet points of insights. Be observational.
         """
         
-        response = self.model.generate_content(prompt)
-        qualitative_insights = response.text.strip()
+        try:
+            qualitative_insights = self.llm.generate_response(prompt)
+        except Exception:
+            qualitative_insights = "Continue recording notes for more deep-dive AI insights."
 
         return {
             "patterns": {
@@ -82,7 +71,7 @@ class InsightService:
             },
             "trends": [
                 f"Your total memory count is {total_notes}.",
-                f"You are a {most_active_period} person!"
+                f"You are most active in the {most_active_period}."
             ],
             "summary": qualitative_insights
         }
