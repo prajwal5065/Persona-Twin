@@ -1,20 +1,32 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+import logging
 from backend.app.db.database import get_db
-from backend.app.services.rag import RAGService
 from backend.app.schemas.chat import ChatRequest, ChatResponse
+from backend.app.services.llm import LLMService
 
 router = APIRouter(tags=["chat"])
+logger = logging.getLogger(__name__)
 
 @router.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest, db: Session = Depends(get_db)):
     """
-    FastAPI endpoint for chat.
-    Retrieves internal memories (notes) and generates an AI response.
+    Direct Chat Endpoint. 
+    Temporarily bypassing RAG/Memories to avoid the system-level Torch DLL error.
     """
     try:
-        rag_service = RAGService(db)
-        ai_response = rag_service.get_response(request.query)
+        # Direct Gemini Call
+        llm_service = LLMService()
+        ai_response = llm_service.generate_response(
+            prompt=request.query, 
+            context="System is currently in Direct-Mode (RAG/Memory is pending system fixes).",
+            style_profile="Helpful digital twin."
+        )
         return ChatResponse(response=ai_response)
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Chat Endpoint Failure: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"AI Service Error: {str(e)}"
+        )

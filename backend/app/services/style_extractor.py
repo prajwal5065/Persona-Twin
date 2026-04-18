@@ -1,14 +1,12 @@
-import google.generativeai as genai
 from typing import List
-from backend.config import get_settings
-
-settings = get_settings()
+from .llm import LLMService
 
 class StyleExtractorService:
-    def __init__(self, api_key: str = None):
-        api_key = api_key or settings.GOOGLE_API_KEY
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+    def __init__(self, llm_service: LLMService = None):
+        """
+        Initializes the service using the unified LLMService (OpenAI).
+        """
+        self.llm = llm_service or LLMService()
 
     def extract_style(self, texts: List[str]) -> str:
         """
@@ -17,7 +15,7 @@ class StyleExtractorService:
         if not texts:
             return "neutral, polite, and helpful"
 
-        combined_text = "\n---\n".join(texts[:20]) # Analyze up to 20 recent notes
+        combined_text = "\n---\n".join(texts[:15]) # Analyze up to 15 recent notes
         
         prompt = f"""
         Analyze the following text samples written by a user. 
@@ -30,8 +28,12 @@ class StyleExtractorService:
         Text Samples:
         {combined_text}
 
-        Return a concise "Style Profile" (max 3 sentences) that another AI can use to mimic this user.
+        Return a concise "Style Profile" (max 2 sentences) that another AI can use to mimic this user.
         """
         
-        response = self.model.generate_content(prompt)
-        return response.text.strip()
+        # Use our unified OpenAI service
+        try:
+            style_profile = self.llm.generate_response(prompt)
+            return style_profile.strip()
+        except Exception:
+            return "conversational and natural"
