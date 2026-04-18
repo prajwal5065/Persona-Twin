@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     
     FAISS_INDEX_PATH: str = "data/faiss_index.bin"
     ID_MAPPING_PATH: str = "data/id_mapping.pkl"
+    GOOGLE_API_KEY: str = "your-google-api-key"
 
     class Config:
         env_file = ".env"
