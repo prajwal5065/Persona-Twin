@@ -6,6 +6,9 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     DATABASE_URL: str = "postgresql://user:password@localhost/dbname"
     SECRET_KEY: str = "your-secret-key"
+    
+    FAISS_INDEX_PATH: str = "data/faiss_index.bin"
+    ID_MAPPING_PATH: str = "data/id_mapping.pkl"
 
     class Config:
         env_file = ".env"
