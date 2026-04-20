@@ -1,61 +1,102 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import desc, or_
-from backend.app.models.note import Note
-from typing import List, Optional
+"""
+services/rag.py
+---------------
+RAG (Retrieval-Augmented Generation) pipeline.
+
+_retrieve_notes() now performs real FAISS vector similarity search instead of
+SQL ILIKE keyword matching.  The result set is scoped strictly to the
+requesting user's own notes.
+
+build_context() and build_prompt() are intentionally left unchanged so the
+LLM prompt logic is not disturbed.
+"""
+
+from __future__ import annotations
+
 import logging
+from typing import List
+
+from sqlalchemy.orm import Session
+
+from backend.app.models.note import Note
+from backend.app.services.retrieval import RetrievalService
 
 logger = logging.getLogger(__name__)
 
+
 class RAGService:
     """
-    RAG (Retrieval-Augmented Generation) Service.
-    
-    Retrieval strategy: Keyword-based search over stored notes.
-    This avoids any dependency on Torch/FAISS while still providing
-    meaningful context from the user's past notes.
-    
-    When Torch/FAISS is fixed, swap _retrieve_notes() with vector similarity search.
+    RAG pipeline scoped to a single user.
+
+    Parameters
+    ----------
+    db:
+        SQLAlchemy session used to hydrate Note objects from IDs returned
+        by FAISS.
+    user_id:
+        The user whose FAISS index and notes are searched.
+    retrieval_service:
+        Optional injection point for testing/mocking.
     """
 
-    def __init__(self, db: Session):
+    def __init__(
+        self,
+        db: Session,
+        user_id: int,
+        retrieval_service: RetrievalService | None = None,
+    ) -> None:
         self.db = db
+        self.user_id = user_id
+        self._retrieval = retrieval_service or RetrievalService()
+
+    # ------------------------------------------------------------------
+    # Retrieval — vector similarity search
+    # ------------------------------------------------------------------
 
     def _retrieve_notes(self, query: str, top_k: int = 5) -> List[Note]:
         """
-        Retrieves the most relevant notes for a given query using keyword search.
-        Falls back to the most recent notes if no keyword matches are found.
+        Embed *query* and return the top-K most similar notes from the user's
+        FAISS index.  When the index is empty (no notes indexed yet) falls back
+        gracefully to an empty list — the prompt builder handles the empty case.
         """
-        # Extract meaningful keywords from the query (words longer than 3 chars)
-        query_words = [w.lower() for w in query.split() if len(w) > 3]
-
-        if query_words:
-            # Build a case-insensitive OR filter across all keywords
-            filters = [Note.content.ilike(f"%{word}%") for word in query_words]
-            matched_notes = (
-                self.db.query(Note)
-                .filter(or_(*filters))
-                .order_by(desc(Note.created_at))
-                .limit(top_k)
-                .all()
-            )
-            if matched_notes:
-                logger.info(f"RAG: Found {len(matched_notes)} keyword-matched notes for query '{query}'")
-                return matched_notes
-
-        # Fallback: return most recent notes as context
-        recent_notes = (
-            self.db.query(Note)
-            .order_by(desc(Note.created_at))
-            .limit(top_k)
-            .all()
+        # 1. Vector search → list of Note IDs
+        similar_ids: List[int] = self._retrieval.find_similar_notes(
+            user_id=self.user_id,
+            query=query,
+            top_k=top_k,
         )
-        logger.info(f"RAG: No keyword matches found. Using {len(recent_notes)} recent notes as context.")
-        return recent_notes
+
+        if not similar_ids:
+            logger.info(
+                "user=%d  FAISS returned 0 results for query='%s'", self.user_id, query
+            )
+            return []
+
+        # 2. Fetch Note rows in the order FAISS returned them (best-match first).
+        #    Filter by user_id as a safety guard even though FAISS is already user-scoped.
+        id_to_note = {
+            n.id: n
+            for n in self.db.query(Note)
+            .filter(Note.id.in_(similar_ids), Note.user_id == self.user_id)
+            .all()
+        }
+
+        # Preserve FAISS ranking order
+        ordered_notes: List[Note] = [id_to_note[nid] for nid in similar_ids if nid in id_to_note]
+        logger.info(
+            "user=%d  retrieved %d notes via FAISS for query='%s'",
+            self.user_id,
+            len(ordered_notes),
+            query,
+        )
+        return ordered_notes
+
+    # ------------------------------------------------------------------
+    # Context and prompt assembly (unchanged from original)
+    # ------------------------------------------------------------------
 
     def build_context(self, notes: List[Note]) -> str:
-        """
-        Formats retrieved notes into a structured context block for the LLM prompt.
-        """
+        """Format retrieved notes into a structured context block for the LLM prompt."""
         if not notes:
             return ""
 
@@ -66,9 +107,7 @@ class RAGService:
         return "\n".join(context_lines)
 
     def build_prompt(self, query: str, context: str) -> str:
-        """
-        Builds the personalized digital twin prompt combining context + query.
-        """
+        """Build the personalised digital-twin prompt combining context + query."""
         if context:
             return f"""You are the digital twin of this user. You have access to their past thoughts and notes.
 
@@ -88,22 +127,26 @@ Question: {query}
 
 Respond conversationally and personally."""
 
+    # ------------------------------------------------------------------
+    # Main pipeline
+    # ------------------------------------------------------------------
+
     def get_response(self, query: str, llm_service) -> str:
         """
-        Main RAG pipeline:
-        1. Retrieve relevant notes from DB
-        2. Build structured context
-        3. Create personalized prompt
+        Full RAG pipeline:
+        1. Retrieve relevant notes via FAISS vector search
+        2. Build structured context string
+        3. Create personalised prompt
         4. Send to LLM and return response
         """
-        # Step 1: Retrieve
-        relevant_notes = self._retrieve_notes(query, top_k=5)
+        # Step 1: FAISS retrieval
+        relevant_notes: List[Note] = self._retrieve_notes(query, top_k=5)
 
         # Step 2: Build context
-        context = self.build_context(relevant_notes)
+        context: str = self.build_context(relevant_notes)
 
         # Step 3: Build prompt
-        prompt = self.build_prompt(query, context)
+        prompt: str = self.build_prompt(query, context)
 
-        # Step 4: Call LLM
+        # Step 4: Call LLM (unchanged)
         return llm_service.generate_response(prompt)
