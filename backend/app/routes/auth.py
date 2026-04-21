@@ -15,10 +15,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import jwt
 from passlib.context import CryptContext
+from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.db.database import get_db
+from backend.app.db.database import get_async_db
 from backend.app.models.user import User
 from backend.app.schemas.auth import TokenResponse, UserCreate
 from backend.config import get_settings
@@ -73,9 +74,9 @@ def _create_access_token(user_id: int) -> str:
     status_code=status.HTTP_201_CREATED,
     summary="Register a new user account",
 )
-def register(
+async def register(
     body: UserCreate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
 ) -> TokenResponse:
     """
     Create a new user and return a JWT.
@@ -84,7 +85,8 @@ def register(
     - **500** on unexpected database errors.
     """
     # Duplicate-email guard
-    existing: User | None = db.query(User).filter(User.email == body.email).first()
+    result = await db.execute(select(User).where(User.email == body.email))
+    existing: User | None = result.scalar_one_or_none()
     if existing is not None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -96,10 +98,10 @@ def register(
 
     try:
         db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
+        await db.commit()
+        await db.refresh(new_user)
     except SQLAlchemyError as exc:
-        db.rollback()
+        await db.rollback()
         logger.error("DB error during registration: %s", exc)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -115,9 +117,9 @@ def register(
     response_model=TokenResponse,
     summary="Authenticate and obtain a JWT (OAuth2 password flow)",
 )
-def login(
+async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
 ) -> TokenResponse:
     """
     Validate credentials via the OAuth2 password form and return a JWT.
@@ -126,7 +128,8 @@ def login(
 
     - **401** for invalid credentials (wrong email or password).
     """
-    user: User | None = db.query(User).filter(User.email == form_data.username).first()
+    result = await db.execute(select(User).where(User.email == form_data.username))
+    user: User | None = result.scalar_one_or_none()
 
     if user is None or not _verify_password(form_data.password, user.hashed_password):
         raise HTTPException(

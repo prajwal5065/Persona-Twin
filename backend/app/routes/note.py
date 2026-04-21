@@ -4,11 +4,11 @@ routes/note.py
 Note management endpoints.
 
 Changes vs original:
-• POST /add-note    — passes user_id to retrieval_service.add_note_to_index();
+• POST /add-note    — async; passes user_id to retrieval_service.add_note_to_index();
                       surfaces indexing errors as HTTP 207 warnings instead of
                       silently swallowing them.
-• GET  /notes       — unchanged, but now filtered to a specific user via ?user_id=
-• POST /notes/reindex — NEW: rebuilds the FAISS index for a user from their DB notes.
+• GET  /notes       — async; filtered to a specific user via ?user_id=
+• POST /notes/reindex — async; rebuilds the FAISS index for a user from their DB notes.
 """
 
 from __future__ import annotations
@@ -17,10 +17,11 @@ import logging
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.db.database import get_db
+from backend.app.db.database import get_async_db
 from backend.app.models.note import Note as NoteModel
 from backend.app.schemas.note import Note as NoteSchema, NoteCreate
 
@@ -33,7 +34,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 @router.post("/add-note", response_model=NoteSchema, status_code=status.HTTP_201_CREATED)
-def create_note(note: NoteCreate, db: Session = Depends(get_db)) -> NoteSchema:
+async def create_note(note: NoteCreate, db: AsyncSession = Depends(get_async_db)) -> NoteSchema:
     """
     Save a note to the database and index it in the user's FAISS vector store.
 
@@ -45,10 +46,10 @@ def create_note(note: NoteCreate, db: Session = Depends(get_db)) -> NoteSchema:
     try:
         db_note = NoteModel(content=note.content, user_id=note.user_id)
         db.add(db_note)
-        db.commit()
-        db.refresh(db_note)
+        await db.commit()
+        await db.refresh(db_note)
     except SQLAlchemyError as exc:
-        db.rollback()
+        await db.rollback()
         logger.error("DB error during note creation: %s", exc)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -83,18 +84,20 @@ def create_note(note: NoteCreate, db: Session = Depends(get_db)) -> NoteSchema:
 # ---------------------------------------------------------------------------
 
 @router.get("/notes", response_model=List[NoteSchema])
-def read_notes(
+async def read_notes(
     user_id: int | None = Query(default=None, description="Filter notes by user"),
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
 ) -> List[NoteSchema]:
     """Return notes, optionally scoped to a single user."""
     try:
-        q = db.query(NoteModel)
+        stmt = select(NoteModel)
         if user_id is not None:
-            q = q.filter(NoteModel.user_id == user_id)
-        return q.offset(skip).limit(limit).all()
+            stmt = stmt.where(NoteModel.user_id == user_id)
+        stmt = stmt.offset(skip).limit(limit)
+        result = await db.execute(stmt)
+        return result.scalars().all()
     except SQLAlchemyError as exc:
         logger.error("DB error during note fetch: %s", exc)
         raise HTTPException(
@@ -108,9 +111,9 @@ def read_notes(
 # ---------------------------------------------------------------------------
 
 @router.post("/notes/reindex", status_code=status.HTTP_200_OK)
-def reindex_notes(
+async def reindex_notes(
     user_id: int = Query(..., description="User whose FAISS index should be rebuilt"),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
 ) -> dict:
     """
     Rebuild the FAISS vector index for *user_id* from scratch using all their
@@ -121,13 +124,13 @@ def reindex_notes(
     - Notes were imported directly into the DB without going through /add-note.
     - The embedding model is upgraded and all vectors need to be regenerated.
     """
-    # Fetch every note for the user
-    notes: List[NoteModel] = (
-        db.query(NoteModel)
-        .filter(NoteModel.user_id == user_id)
+    stmt = (
+        select(NoteModel)
+        .where(NoteModel.user_id == user_id)
         .order_by(NoteModel.id)
-        .all()
     )
+    result = await db.execute(stmt)
+    notes: List[NoteModel] = result.scalars().all()
 
     if not notes:
         return {"detail": f"No notes found for user_id={user_id}. Index is empty."}

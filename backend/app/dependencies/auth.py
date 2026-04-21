@@ -13,9 +13,10 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.db.database import get_db
+from backend.app.db.database import get_async_db
 from backend.app.models.user import User
 from backend.config import get_settings
 
@@ -25,9 +26,9 @@ logger = logging.getLogger(__name__)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
-def get_current_user(
+async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_async_db)],
 ) -> User:
     """
     Decode the JWT bearer token and return the corresponding User row.
@@ -57,7 +58,8 @@ def get_current_user(
         logger.warning("JWT decode failed: %s", exc)
         raise credentials_exception from exc
 
-    user: User | None = db.query(User).filter(User.id == user_id).first()
+    result = await db.execute(select(User).where(User.id == user_id))
+    user: User | None = result.scalar_one_or_none()
     if user is None:
         raise credentials_exception
 

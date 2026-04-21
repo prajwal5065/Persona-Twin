@@ -3,6 +3,9 @@ routes/chat.py
 --------------
 RAG-powered chat endpoint.
 
+LLMService is retrieved from app.state.llm (singleton created at startup)
+instead of being instantiated per-request.
+
 Passes request.user_id to RAGService so retrieval is scoped to the correct
 per-user FAISS index.
 """
@@ -11,12 +14,11 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.db.database import get_db
+from backend.app.db.database import get_async_db
 from backend.app.schemas.chat import ChatRequest, ChatResponse
-from backend.app.services.llm import LLMService
 from backend.app.services.rag import RAGService
 
 router = APIRouter(tags=["chat"])
@@ -24,22 +26,28 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/chat", response_model=ChatResponse)
-def chat(request: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
+async def chat(
+    request: ChatRequest,
+    http_request: Request,
+    db: AsyncSession = Depends(get_async_db),
+) -> ChatResponse:
     """
     RAG-powered chat endpoint.
 
     Flow:
-    1. Embed the query and search the user's FAISS index for similar notes
-    2. Hydrate matching Note rows from the DB
-    3. Build a personalised digital-twin prompt
-    4. Send to Gemini and return the response
+    1. Retrieve the shared LLMService singleton from app.state.
+    2. Embed the query and search the user's FAISS index for similar notes.
+    3. Hydrate matching Note rows from the DB.
+    4. Build a personalised digital-twin prompt.
+    5. Send to Gemini and return the response.
     """
     try:
-        llm_service = LLMService()
+        llm_service = http_request.app.state.llm
+
         # user_id scopes FAISS search to this user's own notes
         rag_service = RAGService(db=db, user_id=request.user_id)
 
-        ai_response: str = rag_service.get_response(
+        ai_response: str = await rag_service.get_response(
             query=request.query,
             llm_service=llm_service,
         )

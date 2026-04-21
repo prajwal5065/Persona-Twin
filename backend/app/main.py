@@ -1,16 +1,68 @@
-from fastapi import FastAPI
-from backend.config import get_settings
-from backend.app.db.database import engine, Base
-from backend.app.routes import note, chat, insights, simulation, user
-from backend.app.routes import auth  # ← new auth module
-from backend.app.models import user as user_model, note as note_model  # Ensure models are loaded
+"""
+main.py
+-------
+FastAPI application entry point.
 
-# Create tables (includes hashed_password column added to User)
-Base.metadata.create_all(bind=engine)
+Startup (lifespan):
+  • Creates LLMService once and stores it on app.state.llm so every route
+    can share the same instance instead of constructing a new one per request.
+  • Creates all ORM tables via the async engine.
+
+All routes retrieve the singleton via:
+    request.app.state.llm
+"""
+
+from __future__ import annotations
+
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+
+from backend.app.db.database import async_engine, Base
+from backend.app.routes import note, chat, insights, simulation, user
+from backend.app.routes import auth
+from backend.app.models import user as user_model, note as note_model  # noqa: F401 — ensure models are registered
+from backend.app.services.llm import LLMService
+from backend.config import get_settings
+
+
+# ---------------------------------------------------------------------------
+# Lifespan: startup / shutdown
+# ---------------------------------------------------------------------------
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Application lifespan handler.
+
+    Startup
+    -------
+    1. Create all ORM tables (idempotent — safe with Alembic-managed DBs too).
+    2. Instantiate LLMService once and attach it to app.state.llm.
+
+    Shutdown
+    --------
+    Dispose the async engine connection pool gracefully.
+    """
+    # --- Startup ---
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    app.state.llm = LLMService()
+
+    yield  # ← application runs here
+
+    # --- Shutdown ---
+    await async_engine.dispose()
+
+
+# ---------------------------------------------------------------------------
+# App
+# ---------------------------------------------------------------------------
 
 settings = get_settings()
 
-app = FastAPI(title=settings.APP_NAME)
+app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)
 
 # Auth router first — exposes /auth/register and /auth/login
 app.include_router(auth.router)
@@ -20,9 +72,11 @@ app.include_router(chat.router)
 app.include_router(insights.router)
 app.include_router(simulation.router)
 
+
 @app.get("/")
 async def root():
     return {"message": "Welcome to Persona Twin API"}
+
 
 @app.get("/health")
 async def health_check():
