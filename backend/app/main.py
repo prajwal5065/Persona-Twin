@@ -19,7 +19,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from backend.app.db.database import async_engine, Base
-from backend.app.routes import note, chat, insights, simulation, user
+from backend.app.routes import note, chat, insights, simulation, user, profile
 from backend.app.routes import auth
 from backend.app.models import user as user_model, note as note_model  # noqa: F401 — ensure models are registered
 from backend.app.services.llm import LLMService
@@ -71,6 +71,7 @@ app.include_router(note.router)
 app.include_router(chat.router)
 app.include_router(insights.router)
 app.include_router(simulation.router)
+app.include_router(profile.router)
 
 
 @app.get("/")
