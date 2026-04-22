@@ -3,27 +3,36 @@ routes/note.py
 --------------
 Note management endpoints.
 
-Changes vs original:
-• POST /add-note    — async; passes user_id to retrieval_service.add_note_to_index();
-                      surfaces indexing errors as HTTP 207 warnings instead of
-                      silently swallowing them.
-• GET  /notes       — async; filtered to a specific user via ?user_id=
-• POST /notes/reindex — async; rebuilds the FAISS index for a user from their DB notes.
+• POST /add-note          — save a note and index it in FAISS.
+• GET  /notes             — list notes (optionally scoped to a user).
+• POST /notes/reindex     — rebuild FAISS index from DB notes.
+• POST /notes/voice       — transcribe an audio file via Whisper and save as a note.
 """
 
 from __future__ import annotations
 
 import logging
-from typing import List
+from typing import Annotated, List
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.db.database import get_async_db
+from backend.app.dependencies.auth import get_current_user
 from backend.app.models.note import Note as NoteModel
+from backend.app.models.user import User as UserModel
 from backend.app.schemas.note import Note as NoteSchema, NoteCreate
+
+# ── Voice endpoint constants ───────────────────────────────────────────────────
+_ALLOWED_AUDIO_TYPES: frozenset[str] = frozenset({
+    "audio/mpeg",
+    "audio/wav",
+    "audio/mp4",
+    "audio/m4a",
+})
+_MAX_AUDIO_BYTES: int = 25 * 1024 * 1024  # 25 MB
 
 router = APIRouter(tags=["notes"])
 logger = logging.getLogger(__name__)
@@ -157,4 +166,121 @@ async def reindex_notes(
     return {
         "detail": f"Reindex complete for user_id={user_id}.",
         "notes_indexed": len(note_ids),
+    }
+
+
+# ---------------------------------------------------------------------------
+# POST /notes/voice
+# ---------------------------------------------------------------------------
+
+@router.post("/notes/voice", status_code=status.HTTP_201_CREATED)
+async def voice_to_note(
+    audio: Annotated[UploadFile, File(description="Audio file to transcribe (mp3/wav/mp4/m4a, max 25 MB)")],
+    db: Annotated[AsyncSession, Depends(get_async_db)],
+    current_user: Annotated[UserModel, Depends(get_current_user)],
+) -> dict:
+    """
+    Transcribe an uploaded audio file with OpenAI Whisper and save the result
+    as a new Note for the authenticated user.
+
+    Returns
+    -------
+    JSON with two keys:
+      • ``note``          — the persisted Note object (id, user_id, content, created_at)
+      • ``transcription`` — the raw text returned by Whisper
+    """
+    # 1. Validate MIME type ───────────────────────────────────────────────────
+    content_type: str = (audio.content_type or "").lower()
+    if content_type not in _ALLOWED_AUDIO_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Unsupported audio format: '{content_type}'. "
+                f"Allowed: {sorted(_ALLOWED_AUDIO_TYPES)}"
+            ),
+        )
+
+    # 2. Enforce max file size before reading the whole payload ───────────────
+    # UploadFile.size is set by Starlette when the client sends Content-Length.
+    # We also double-check after reading to handle chunked transfers.
+    if audio.size is not None and audio.size > _MAX_AUDIO_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Audio file exceeds the 25 MB limit ({audio.size} bytes received).",
+        )
+
+    audio_bytes: bytes = await audio.read()
+    if len(audio_bytes) > _MAX_AUDIO_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Audio file exceeds the 25 MB limit "
+                f"({len(audio_bytes):,} bytes after reading)."
+            ),
+        )
+
+    # 3. Transcribe via Whisper (lazy import — keeps startup fast) ────────────
+    try:
+        from backend.app.services.voice import VoiceService
+
+        voice_service = VoiceService()
+        transcription: str = voice_service.transcribe(
+            audio_bytes=audio_bytes,
+            mime_type=content_type,
+        )
+    except ValueError as exc:
+        # Raised by VoiceService for unsupported MIME types (belt-and-suspenders)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+    except RuntimeError as exc:
+        # Raised by VoiceService when the Whisper API call fails
+        logger.error("Whisper API error for user_id=%d: %s", current_user.id, exc)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Transcription service unavailable: {exc}",
+        ) from exc
+
+    # 4. Persist transcription as a Note ──────────────────────────────────────
+    try:
+        db_note = NoteModel(content=transcription, user_id=current_user.id)
+        db.add(db_note)
+        await db.commit()
+        await db.refresh(db_note)
+    except SQLAlchemyError as exc:
+        await db.rollback()
+        logger.error("DB error saving voice note for user_id=%d: %s", current_user.id, exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to store transcription as a note.",
+        ) from exc
+
+    # 5. Non-critical: index the new note in FAISS ────────────────────────────
+    try:
+        from backend.app.services.retrieval import RetrievalService
+
+        retrieval_service = RetrievalService()
+        retrieval_service.add_note_to_index(
+            user_id=db_note.user_id,
+            note_id=db_note.id,
+            content=db_note.content,
+        )
+        logger.info(
+            "voice_note: note_id=%d indexed in FAISS for user_id=%d",
+            db_note.id,
+            db_note.user_id,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "voice_note: FAISS indexing skipped for note_id=%d user_id=%d: %s",
+            db_note.id,
+            db_note.user_id,
+            exc,
+        )
+
+    # 6. Return note + raw transcription ──────────────────────────────────────
+    return {
+        "note": NoteSchema.model_validate(db_note),
+        "transcription": transcription,
     }

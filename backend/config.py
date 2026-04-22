@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     
     # LLM & Embeddings
     GEMINI_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""  # Used by VoiceService (Whisper) only
     EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
     MAX_TOKENS: int = 1000
     TEMPERATURE: float = 0.7
