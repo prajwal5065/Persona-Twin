@@ -3,12 +3,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.db.database import get_async_db
 from backend.app.schemas.insights import InsightResponse
+from backend.app.rate_limit import limiter
+from fastapi import Request
 
 router = APIRouter(tags=["insights"])
 
 
 @router.get("/insights", response_model=InsightResponse)
-async def get_insights(db: AsyncSession = Depends(get_async_db)):
+@limiter.limit("10/minute")
+async def get_insights(request: Request, db: AsyncSession = Depends(get_async_db)):
     """
     Analyzes all notes to return trends, behavioral patterns, and qualitative AI insights.
     """
