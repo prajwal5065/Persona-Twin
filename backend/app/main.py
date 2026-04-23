@@ -19,11 +19,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from backend.app.db.database import async_engine, Base
-from backend.app.routes import note, chat, insights, simulation, user, profile
+from backend.app.routes import note, chat, insights, simulation, user, profile, digest
 from backend.app.routes import auth
-from backend.app.models import user as user_model, note as note_model  # noqa: F401 — ensure models are registered
+from backend.app.models import user as user_model, note as note_model, digest as digest_model  # noqa: F401 — ensure models are registered
 from backend.app.services.llm import LLMService
 from backend.config import get_settings
+from backend.app.tasks.weekly_digest import setup_scheduler
 
 
 # ---------------------------------------------------------------------------
@@ -49,6 +50,7 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
 
     app.state.llm = LLMService()
+    setup_scheduler()
 
     yield  # ← application runs here
 
@@ -72,6 +74,7 @@ app.include_router(chat.router)
 app.include_router(insights.router)
 app.include_router(simulation.router)
 app.include_router(profile.router)
+app.include_router(digest.router)
 
 
 @app.get("/")
