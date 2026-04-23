@@ -17,6 +17,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.db.database import async_engine, Base
 from backend.app.routes import note, chat, insights, simulation, user, profile, digest
@@ -26,6 +27,8 @@ from backend.app.services.llm import LLMService
 from backend.config import get_settings
 from backend.app.tasks.weekly_digest import setup_scheduler
 from backend.app.rate_limit import limiter
+from backend.app.logger import setup_logging
+from backend.app.middleware.logging import RequestLoggingMiddleware
 from slowapi.errors import RateLimitExceeded
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -56,9 +59,6 @@ async def lifespan(app: FastAPI):
     Dispose the async engine connection pool gracefully.
     """
     # --- Startup ---
-    async with async_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
     app.state.llm = LLMService()
     app.state.limiter = limiter
     setup_scheduler()
@@ -73,9 +73,19 @@ async def lifespan(app: FastAPI):
 # App
 # ---------------------------------------------------------------------------
 
+setup_logging()
 settings = get_settings()
 
 app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+app.add_middleware(RequestLoggingMiddleware)
 
 # Auth router first — exposes /auth/register and /auth/login
 app.include_router(auth.router)

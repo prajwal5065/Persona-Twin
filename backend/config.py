@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 from functools import lru_cache
 
 class Settings(BaseSettings):
@@ -7,6 +8,13 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     DATABASE_URL: str = "postgresql://user:password@localhost/dbname"
     SECRET_KEY: str = "your-secret-key"
+    ALLOWED_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
+    
+    @field_validator("ALLOWED_ORIGINS", mode="before")
+    def assemble_cors_origins(cls, v: str | list[str]) -> list[str]:
+        if isinstance(v, str) and not v.startswith("["):
+            return [i.strip() for i in v.split(",") if i.strip()]
+        return v
     
     # LLM & Embeddings
     GEMINI_API_KEY: str = ""

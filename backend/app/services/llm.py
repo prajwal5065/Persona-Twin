@@ -1,9 +1,10 @@
 import google.generativeai as genai
 from backend.config import get_settings
-import logging
+import structlog
+import time
 
 settings = get_settings()
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 class LLMService:
     def __init__(self, api_key: str = None):
@@ -54,6 +55,7 @@ class LLMService:
         if style_profile:
             full_prompt += f"\n\nStyle: {style_profile}"
 
+        start_time = time.time()
         try:
             response = self.model.generate_content(
                 full_prompt,
@@ -64,10 +66,15 @@ class LLMService:
                     'DANGEROUS': 'BLOCK_NONE'
                 }
             )
+            duration_ms = round((time.time() - start_time) * 1000, 2)
+            token_estimate = len(full_prompt) // 4
+            logger.info("llm_call_completed", model_name=self.model_name, token_estimate=token_estimate, latency_ms=duration_ms)
+            
             try:
                 return response.text.strip()
             except (ValueError, AttributeError):
                 return "I'm sorry, I couldn't generate a response for that query."
         except Exception as e:
-            logger.error(f"Gemini API call failed: {e}")
+            duration_ms = round((time.time() - start_time) * 1000, 2)
+            logger.error("llm_call_failed", model_name=self.model_name, latency_ms=duration_ms, error=str(e))
             return f"AI Connection Error: {str(e)}"
