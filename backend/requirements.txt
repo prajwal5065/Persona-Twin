@@ -19,4 +19,8 @@ openai
 apscheduler
 slowapi
 structlog
+pytest
+pytest-asyncio
+httpx
+
 
