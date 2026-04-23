@@ -12,7 +12,7 @@ The legacy sync engine/SessionLocal/get_db are intentionally removed;
 all routes now use the async variants.
 """
 
-import logging
+import structlog
 import re
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -23,8 +23,7 @@ from backend.config import get_settings
 # ---------------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------------
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 # ---------------------------------------------------------------------------
 # Build DATABASE_URL
