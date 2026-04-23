@@ -24,6 +24,7 @@ from backend.app.dependencies.auth import get_current_user
 from backend.app.models.note import Note as NoteModel
 from backend.app.models.user import User as UserModel
 from backend.app.schemas.note import Note as NoteSchema, NoteCreate
+from backend.app.rate_limit import limiter
 
 # ── Voice endpoint constants ───────────────────────────────────────────────────
 _ALLOWED_AUDIO_TYPES: frozenset[str] = frozenset({
@@ -43,7 +44,8 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 @router.post("/add-note", response_model=NoteSchema, status_code=status.HTTP_201_CREATED)
-async def create_note(note: NoteCreate, db: AsyncSession = Depends(get_async_db)) -> NoteSchema:
+@limiter.limit("30/minute")
+async def create_note(note: NoteCreate, request: Request, db: AsyncSession = Depends(get_async_db)) -> NoteSchema:
     """
     Save a note to the database and index it in the user's FAISS vector store.
 

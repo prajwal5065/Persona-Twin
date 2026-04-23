@@ -20,15 +20,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.db.database import get_async_db
 from backend.app.schemas.chat import ChatRequest, ChatResponse
 from backend.app.services.rag import RAGService
+from backend.app.rate_limit import limiter
 
 router = APIRouter(tags=["chat"])
 logger = logging.getLogger(__name__)
 
 
 @router.post("/chat", response_model=ChatResponse)
+@limiter.limit("10/minute")
 async def chat(
-    request: ChatRequest,
-    http_request: Request,
+    body: ChatRequest,
+    request: Request,
     db: AsyncSession = Depends(get_async_db),
 ) -> ChatResponse:
     """
@@ -42,13 +44,13 @@ async def chat(
     5. Send to Gemini and return the response.
     """
     try:
-        llm_service = http_request.app.state.llm
+        llm_service = request.app.state.llm
 
         # user_id scopes FAISS search to this user's own notes
-        rag_service = RAGService(db=db, user_id=request.user_id)
+        rag_service = RAGService(db=db, user_id=body.user_id)
 
         ai_response: str = await rag_service.get_response(
-            query=request.query,
+            query=body.query,
             llm_service=llm_service,
         )
 

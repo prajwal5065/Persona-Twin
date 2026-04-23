@@ -17,4 +17,5 @@ numpy
 google-generativeai
 openai
 apscheduler
+slowapi
 

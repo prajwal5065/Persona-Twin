@@ -25,6 +25,16 @@ from backend.app.models import user as user_model, note as note_model, digest as
 from backend.app.services.llm import LLMService
 from backend.config import get_settings
 from backend.app.tasks.weekly_digest import setup_scheduler
+from backend.app.rate_limit import limiter
+from slowapi.errors import RateLimitExceeded
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={"error": "Rate limit exceeded", "retry_after": 60}
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -50,6 +60,7 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
 
     app.state.llm = LLMService()
+    app.state.limiter = limiter
     setup_scheduler()
 
     yield  # ← application runs here
@@ -68,6 +79,7 @@ app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)
 
 # Auth router first — exposes /auth/register and /auth/login
 app.include_router(auth.router)
+app.add_exception_handler(RateLimitExceeded, custom_rate_limit_handler)
 app.include_router(user.router)
 app.include_router(note.router)
 app.include_router(chat.router)
