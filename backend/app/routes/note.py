@@ -41,11 +41,14 @@ logger = logging.getLogger(__name__)
 # POST /add-note
 # ---------------------------------------------------------------------------
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status, Body
-
 @router.post("/add-note", response_model=NoteSchema, status_code=status.HTTP_201_CREATED)
 @limiter.limit("30/minute")
-async def create_note(request: Request, note: NoteCreate, db: AsyncSession = Depends(get_async_db)) -> NoteSchema:
+async def create_note(
+    request: Request,
+    note: NoteCreate,
+    current_user: Annotated[UserModel, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_async_db)
+) -> NoteSchema:
     """
     Save a note to the database and index it in the user's FAISS vector store.
 
@@ -55,13 +58,13 @@ async def create_note(request: Request, note: NoteCreate, db: AsyncSession = Dep
     """
     # --- DB write (critical) ---
     try:
-        db_note = NoteModel(content=note.content, user_id=note.user_id)
+        db_note = NoteModel(content=note.content, user_id=current_user.id)
         db.add(db_note)
         await db.commit()
         await db.refresh(db_note)
     except SQLAlchemyError as exc:
         await db.rollback()
-        logger.error("DB error during note creation: %s", exc)
+        logger.error("DB error during note creation for user %d: %s", current_user.id, exc)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to store note in database",
@@ -96,21 +99,23 @@ async def create_note(request: Request, note: NoteCreate, db: AsyncSession = Dep
 
 @router.get("/notes", response_model=List[NoteSchema])
 async def read_notes(
-    user_id: int | None = Query(default=None, description="Filter notes by user"),
+    current_user: Annotated[UserModel, Depends(get_current_user)],
     skip: int = 0,
     limit: int = 100,
     db: AsyncSession = Depends(get_async_db),
 ) -> List[NoteSchema]:
-    """Return notes, optionally scoped to a single user."""
+    """Return notes for the authenticated user."""
     try:
-        stmt = select(NoteModel)
-        if user_id is not None:
-            stmt = stmt.where(NoteModel.user_id == user_id)
-        stmt = stmt.offset(skip).limit(limit)
+        stmt = (
+            select(NoteModel)
+            .where(NoteModel.user_id == current_user.id)
+            .offset(skip)
+            .limit(limit)
+        )
         result = await db.execute(stmt)
         return result.scalars().all()
     except SQLAlchemyError as exc:
-        logger.error("DB error during note fetch: %s", exc)
+        logger.error("DB error during note fetch for user %d: %s", current_user.id, exc)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to fetch notes from database",
@@ -123,7 +128,7 @@ async def read_notes(
 
 @router.post("/notes/reindex", status_code=status.HTTP_200_OK)
 async def reindex_notes(
-    user_id: int = Query(..., description="User whose FAISS index should be rebuilt"),
+    current_user: Annotated[UserModel, Depends(get_current_user)],
     db: AsyncSession = Depends(get_async_db),
 ) -> dict:
     """
@@ -137,14 +142,14 @@ async def reindex_notes(
     """
     stmt = (
         select(NoteModel)
-        .where(NoteModel.user_id == user_id)
+        .where(NoteModel.user_id == current_user.id)
         .order_by(NoteModel.id)
     )
     result = await db.execute(stmt)
     notes: List[NoteModel] = result.scalars().all()
 
     if not notes:
-        return {"detail": f"No notes found for user_id={user_id}. Index is empty."}
+        return {"detail": f"No notes found for user_id={current_user.id}. Index is empty."}
 
     note_ids = [n.id for n in notes]
     contents = [n.content for n in notes]
@@ -154,19 +159,19 @@ async def reindex_notes(
 
         retrieval_service = RetrievalService()
         retrieval_service.rebuild_index(
-            user_id=user_id,
+            user_id=current_user.id,
             note_ids=note_ids,
             contents=contents,
         )
     except Exception as exc:  # noqa: BLE001
-        logger.error("Reindex failed for user=%d: %s", user_id, exc)
+        logger.error("Reindex failed for user=%d: %s", current_user.id, exc)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Reindex failed: {exc}",
         ) from exc
 
     return {
-        "detail": f"Reindex complete for user_id={user_id}.",
+        "detail": f"Reindex complete for user_id={current_user.id}.",
         "notes_indexed": len(note_ids),
     }
 

@@ -1,5 +1,5 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, desc
 from backend.app.models.note import Note
 from .retrieval import RetrievalService
 from .llm import LLMService
@@ -7,23 +7,34 @@ from .style_extractor import StyleExtractorService
 from typing import Dict
 
 class DecisionService:
-    def __init__(self, db: Session, retrieval_service: RetrievalService = None, llm_service: LLMService = None, style_extractor: StyleExtractorService = None):
+    def __init__(self, db: AsyncSession, retrieval_service: RetrievalService = None, llm_service: LLMService = None, style_extractor: StyleExtractorService = None):
         self.db = db
         self.retrieval_service = retrieval_service or RetrievalService()
         self.llm_service = llm_service or LLMService()
         self.style_extractor = style_extractor or StyleExtractorService()
 
-    def simulate_decision(self, scenario: str) -> Dict[str, str]:
+    async def simulate_decision(self, user_id: int, scenario: str) -> Dict[str, str]:
         """
         Retrieves relevant history, analyzes user style, and predicts a decision for a given scenario.
         """
         # 1. Retrieve notes relevant to the scenario (past similar situations)
-        note_ids = self.retrieval_service.find_similar_notes(scenario, top_k=8)
-        relevant_notes = self.db.query(Note).filter(Note.id.in_(note_ids)).all()
-        history_context = "\n".join([f"- {n.content}" for n in relevant_notes])
+        note_ids = self.retrieval_service.find_similar_notes(user_id, scenario, top_k=8)
+        
+        stmt = select(Note).where(Note.id.in_(note_ids), Note.user_id == user_id)
+        result = await self.db.execute(stmt)
+        relevant_notes = result.scalars().all()
+        
+        # Sort relevant_notes by the order of note_ids to maintain ranking
+        id_to_note = {n.id: n for n in relevant_notes}
+        ordered_relevant_notes = [id_to_note[nid] for nid in note_ids if nid in id_to_note]
+        
+        history_context = "\n".join([f"- {n.content}" for n in ordered_relevant_notes])
 
         # 2. Extract current user style
-        recent_notes = self.db.query(Note).order_by(desc(Note.created_at)).limit(15).all()
+        stmt_recent = select(Note).where(Note.user_id == user_id).order_by(desc(Note.created_at)).limit(15)
+        result_recent = await self.db.execute(stmt_recent)
+        recent_notes = result_recent.scalars().all()
+        
         recent_texts = [n.content for n in recent_notes]
         style_profile = self.style_extractor.extract_style(recent_texts)
 

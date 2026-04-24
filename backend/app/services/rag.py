@@ -6,16 +6,13 @@ RAG (Retrieval-Augmented Generation) pipeline.
 _retrieve_notes() now performs real FAISS vector similarity search instead of
 SQL ILIKE keyword matching.  The result set is scoped strictly to the
 requesting user's own notes.
-
-build_context() and build_prompt() are intentionally left unchanged so the
-LLM prompt logic is not disturbed.
 """
-
 
 import logging
 from typing import List
 
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from backend.app.models.note import Note
 from backend.app.services.retrieval import RetrievalService
@@ -30,7 +27,7 @@ class RAGService:
     Parameters
     ----------
     db:
-        SQLAlchemy session used to hydrate Note objects from IDs returned
+        Async SQLAlchemy session used to hydrate Note objects from IDs returned
         by FAISS.
     user_id:
         The user whose FAISS index and notes are searched.
@@ -40,7 +37,7 @@ class RAGService:
 
     def __init__(
         self,
-        db: Session,
+        db: AsyncSession,
         user_id: int,
         retrieval_service: RetrievalService | None = None,
     ) -> None:
@@ -52,13 +49,14 @@ class RAGService:
     # Retrieval — vector similarity search
     # ------------------------------------------------------------------
 
-    def _retrieve_notes(self, query: str, top_k: int = 5) -> List[Note]:
+    async def _retrieve_notes(self, query: str, top_k: int = 5) -> List[Note]:
         """
         Embed *query* and return the top-K most similar notes from the user's
         FAISS index.  When the index is empty (no notes indexed yet) falls back
         gracefully to an empty list — the prompt builder handles the empty case.
         """
         # 1. Vector search → list of Note IDs
+        # Note: RetrievalService.find_similar_notes is currently sync.
         similar_ids: List[int] = self._retrieval.find_similar_notes(
             user_id=self.user_id,
             query=query,
@@ -73,12 +71,11 @@ class RAGService:
 
         # 2. Fetch Note rows in the order FAISS returned them (best-match first).
         #    Filter by user_id as a safety guard even though FAISS is already user-scoped.
-        id_to_note = {
-            n.id: n
-            for n in self.db.query(Note)
-            .filter(Note.id.in_(similar_ids), Note.user_id == self.user_id)
-            .all()
-        }
+        stmt = select(Note).where(Note.id.in_(similar_ids), Note.user_id == self.user_id)
+        result = await self.db.execute(stmt)
+        notes = result.scalars().all()
+        
+        id_to_note = {n.id: n for n in notes}
 
         # Preserve FAISS ranking order
         ordered_notes: List[Note] = [id_to_note[nid] for nid in similar_ids if nid in id_to_note]
@@ -130,7 +127,7 @@ Respond conversationally and personally."""
     # Main pipeline
     # ------------------------------------------------------------------
 
-    def get_response(self, query: str, llm_service) -> str:
+    async def get_response(self, query: str, llm_service) -> str:
         """
         Full RAG pipeline:
         1. Retrieve relevant notes via FAISS vector search
@@ -139,7 +136,7 @@ Respond conversationally and personally."""
         4. Send to LLM and return response
         """
         # Step 1: FAISS retrieval
-        relevant_notes: List[Note] = self._retrieve_notes(query, top_k=5)
+        relevant_notes: List[Note] = await self._retrieve_notes(query, top_k=5)
 
         # Step 2: Build context
         context: str = self.build_context(relevant_notes)
@@ -147,5 +144,6 @@ Respond conversationally and personally."""
         # Step 3: Build prompt
         prompt: str = self.build_prompt(query, context)
 
-        # Step 4: Call LLM (unchanged)
+        # Step 4: Call LLM
+        # Note: LLMService.generate_response is currently sync.
         return llm_service.generate_response(prompt)
