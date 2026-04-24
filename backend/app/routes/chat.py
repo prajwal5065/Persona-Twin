@@ -10,8 +10,6 @@ Passes request.user_id to RAGService so retrieval is scoped to the correct
 per-user FAISS index.
 """
 
-from __future__ import annotations
-
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -21,6 +19,8 @@ from backend.app.db.database import get_async_db
 from backend.app.schemas.chat import ChatRequest, ChatResponse
 from backend.app.services.rag import RAGService
 from backend.app.rate_limit import limiter
+from backend.app.dependencies.auth import get_current_user
+from backend.app.models.user import User
 
 router = APIRouter(tags=["chat"])
 logger = logging.getLogger(__name__)
@@ -32,6 +32,7 @@ async def chat(
     body: ChatRequest,
     request: Request,
     db: AsyncSession = Depends(get_async_db),
+    current_user: User = Depends(get_current_user),
 ) -> ChatResponse:
     """
     RAG-powered chat endpoint.
@@ -47,7 +48,7 @@ async def chat(
         llm_service = request.app.state.llm
 
         # user_id scopes FAISS search to this user's own notes
-        rag_service = RAGService(db=db, user_id=body.user_id)
+        rag_service = RAGService(db=db, user_id=current_user.id)
 
         ai_response: str = await rag_service.get_response(
             query=body.query,

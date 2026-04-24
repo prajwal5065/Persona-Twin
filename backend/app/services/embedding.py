@@ -10,13 +10,11 @@ look-up that may fail in air-gapped environments. We strip the prefix so the loc
 cached model is always found first.
 """
 
-from __future__ import annotations
 
 import logging
-from typing import List
+from typing import List, Any
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 from backend.config import get_settings
 
@@ -25,12 +23,13 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Singleton – one model instance per process (thread-safe after first load)
 # ---------------------------------------------------------------------------
-_model_instance: SentenceTransformer | None = None
+_model_instance: Any = None
 
 
-def _get_model(model_name: str) -> SentenceTransformer:
+def _get_model(model_name: str) -> Any:
     global _model_instance
     if _model_instance is None:
+        from sentence_transformers import SentenceTransformer
         # Strip the "sentence-transformers/" namespace prefix if present so that
         # the local cache is resolved correctly.
         bare_name = model_name.removeprefix("sentence-transformers/")
@@ -50,7 +49,7 @@ class EmbeddingService:
         self._model_name = model_name or settings.EMBEDDING_MODEL
         # Eagerly load here so import-time failures surface immediately
         # instead of being silently swallowed by the route handler.
-        self.model: SentenceTransformer = _get_model(self._model_name)
+        self.model: Any = _get_model(self._model_name)
 
     def generate_embedding(self, text: str) -> List[float]:
         """Return a float list embedding for *text*."""

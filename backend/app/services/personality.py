@@ -13,7 +13,6 @@ analyze(user_id) pipeline:
   6. Return the validated dict.
 """
 
-from __future__ import annotations
 
 import json
 import logging

@@ -12,15 +12,13 @@ disk is only read once per user per process lifetime; call
 ``VectorDBService.for_user(user_id)`` to obtain or reuse an instance.
 """
 
-from __future__ import annotations
 
 import logging
 import os
 import pickle
 from threading import Lock
-from typing import Dict, List
+from typing import Dict, List, Any
 
-import faiss
 import numpy as np
 
 from backend.config import get_settings
@@ -62,7 +60,9 @@ class VectorDBService:
         self._index_path = os.path.join(root, f"user_{user_id}.bin")
         self._mapping_path = os.path.join(root, f"user_{user_id}.pkl")
 
-        self.index: faiss.IndexFlatL2 = faiss.IndexFlatL2(self.dimension)
+        import faiss
+
+        self.index: Any = faiss.IndexFlatL2(self.dimension)
         self.id_mapping: List[int] = []  # position → Note.id
 
         self._load()
@@ -129,6 +129,8 @@ class VectorDBService:
 
     def reset(self) -> None:
         """Clear the in-memory index and delete persisted files."""
+        import faiss
+        
         self.index = faiss.IndexFlatL2(self.dimension)
         self.id_mapping = []
         for path in (self._index_path, self._mapping_path):
@@ -143,11 +145,15 @@ class VectorDBService:
     # ------------------------------------------------------------------
 
     def _save(self) -> None:
+        import faiss
+        
         faiss.write_index(self.index, self._index_path)
         with open(self._mapping_path, "wb") as fh:
             pickle.dump(self.id_mapping, fh)
 
     def _load(self) -> None:
+        import faiss
+        
         if os.path.exists(self._index_path) and os.path.exists(self._mapping_path):
             self.index = faiss.read_index(self._index_path)
             with open(self._mapping_path, "rb") as fh:
@@ -159,6 +165,8 @@ class VectorDBService:
                 self._index_path,
             )
         else:
+            import faiss
+            
             self.index = faiss.IndexFlatL2(self.dimension)
             self.id_mapping = []
             logger.info("user=%d  fresh FAISS index (no persisted files found)", self.user_id)

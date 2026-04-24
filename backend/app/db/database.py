@@ -34,15 +34,14 @@ _raw_url: str = settings.DATABASE_URL
 # Rewrite scheme: postgresql[+anything]:// → postgresql+asyncpg://
 _async_url = re.sub(r"^postgresql(\+\w+)?://", "postgresql+asyncpg://", _raw_url)
 
-# Ensure sslmode=require for Neon / hosted Postgres
-# Note: asyncpg uses connect_args for SSL; strip sslmode from URL if present
-# and pass ssl=True via connect_args instead, so the URL stays clean.
-_has_sslmode = "sslmode" in _async_url
-if "postgresql" in _async_url and not _has_sslmode:
-    if "?" in _async_url:
-        _async_url += "&sslmode=require"
-    else:
-        _async_url += "?sslmode=require"
+# asyncpg does not support 'sslmode'. We must strip it from the URL
+# and pass 'ssl=True' via connect_args for hosted services like Neon.
+_async_url = re.sub(r"\?sslmode=[^&]+", "", _async_url)
+_async_url = re.sub(r"&sslmode=[^&]+", "", _async_url)
+
+_connect_args = {}
+if "neon.tech" in _async_url or "sslmode=require" in _raw_url:
+    _connect_args["ssl"] = True
 
 # ---------------------------------------------------------------------------
 # Async engine
@@ -54,6 +53,7 @@ try:
         pool_size=5,
         max_overflow=10,
         echo=False,
+        connect_args=_connect_args,
     )
     AsyncSessionLocal = async_sessionmaker(
         bind=async_engine,

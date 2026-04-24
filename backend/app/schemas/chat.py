@@ -3,7 +3,6 @@ from pydantic import BaseModel, Field, field_validator
 
 class ChatRequest(BaseModel):
     query: str
-    user_id: int = Field(..., gt=0, description="Authenticated user ID (must be > 0)")
 
     @field_validator("query", mode="before")
     @classmethod

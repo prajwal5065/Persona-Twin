@@ -9,8 +9,6 @@ Note management endpoints.
 • POST /notes/voice       — transcribe an audio file via Whisper and save as a note.
 """
 
-from __future__ import annotations
-
 import logging
 from typing import Annotated, List
 
@@ -43,9 +41,11 @@ logger = logging.getLogger(__name__)
 # POST /add-note
 # ---------------------------------------------------------------------------
 
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status, Body
+
 @router.post("/add-note", response_model=NoteSchema, status_code=status.HTTP_201_CREATED)
 @limiter.limit("30/minute")
-async def create_note(note: NoteCreate, request: Request, db: AsyncSession = Depends(get_async_db)) -> NoteSchema:
+async def create_note(request: Request, note: NoteCreate, db: AsyncSession = Depends(get_async_db)) -> NoteSchema:
     """
     Save a note to the database and index it in the user's FAISS vector store.
 

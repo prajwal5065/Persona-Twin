@@ -45,3 +45,6 @@ class Note(NoteBase):
 
     class Config:
         from_attributes = True
+
+NoteCreate.model_rebuild()
+Note.model_rebuild()
