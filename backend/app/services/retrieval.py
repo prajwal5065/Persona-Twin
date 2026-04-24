@@ -8,7 +8,6 @@ correct per-user FAISS index.  The class itself is stateless; it obtains the
 right VectorDBService instance from the process cache on each call.
 """
 
-from __future__ import annotations
 
 import logging
 from typing import List

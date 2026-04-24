@@ -4,7 +4,7 @@ from sqlalchemy import select, desc
 from backend.app.db.database import get_async_db
 from backend.app.models.digest import Digest
 from backend.app.schemas.digest import DigestResponse
-from backend.app.routes.auth import get_current_user
+from backend.app.dependencies.auth import get_current_user
 from backend.app.models.user import User
 
 router = APIRouter(prefix="/digest", tags=["Digest"])

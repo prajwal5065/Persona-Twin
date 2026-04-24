@@ -11,7 +11,6 @@ build_context() and build_prompt() are intentionally left unchanged so the
 LLM prompt logic is not disturbed.
 """
 
-from __future__ import annotations
 
 import logging
 from typing import List

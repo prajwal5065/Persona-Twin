@@ -5,8 +5,6 @@ FastAPI dependency that resolves the currently authenticated user from a
 Bearer JWT token in the Authorization header.
 """
 
-from __future__ import annotations
-
 import logging
 from typing import Annotated
 

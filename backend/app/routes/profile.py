@@ -9,8 +9,6 @@ POST /profile/personality/analyze — triggers a fresh analysis and
                              overwrites the stored profile.
 """
 
-from __future__ import annotations
-
 import logging
 from typing import Annotated
 

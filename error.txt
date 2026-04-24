@@ -1,0 +1,25 @@
+Traceback (most recent call last):
+  File "<string>", line 3, in <module>
+  File "C:\Users\admin\AppData\Local\Programs\Python\Python311\Lib\site-packages\fastapi\applications.py", line 981, in openapi
+    self.openapi_schema = get_openapi(
+                          ^^^^^^^^^^^^
+  File "C:\Users\admin\AppData\Local\Programs\Python\Python311\Lib\site-packages\fastapi\openapi\utils.py", line 475, in get_openapi
+    field_mapping, definitions = get_definitions(
+                                 ^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\AppData\Local\Programs\Python\Python311\Lib\site-packages\fastapi\_compat.py", line 229, in get_definitions
+    field_mapping, definitions = schema_generator.generate_definitions(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\AppData\Local\Programs\Python\Python311\Lib\site-packages\pydantic\json_schema.py", line 379, in generate_definitions
+    self.generate_inner(schema)
+  File "C:\Users\admin\AppData\Local\Programs\Python\Python311\Lib\site-packages\pydantic\json_schema.py", line 459, in generate_inner
+    if 'ref' in schema:
+       ^^^^^^^^^^^^^^^
+  File "<frozen _collections_abc>", line 780, in __contains__
+  File "C:\Users\admin\AppData\Local\Programs\Python\Python311\Lib\site-packages\pydantic\_internal\_mock_val_ser.py", line 41, in __getitem__
+    return self._get_built().__getitem__(key)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\AppData\Local\Programs\Python\Python311\Lib\site-packages\pydantic\_internal\_mock_val_ser.py", line 58, in _get_built
+    raise PydanticUserError(self._error_message, code=self._code)
+pydantic.errors.PydanticUserError: `TypeAdapter[typing.Annotated[ForwardRef('NoteCreate'), Query(PydanticUndefined)]]` is not fully defined; you should define `typing.Annotated[ForwardRef('NoteCreate'), Query(PydanticUndefined)]` and all referenced types, then call `.rebuild()` on the instance.
+
+For further information visit https://errors.pydantic.dev/2.12/u/class-not-fully-defined

@@ -3,7 +3,7 @@ from logging.config import fileConfig
 
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
-from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlalchemy.ext.asyncio import async_engine_from_config, create_async_engine
 
 from alembic import context
 
@@ -29,6 +29,15 @@ from backend.app.models import user, note, digest
 settings = get_settings()
 _raw_url = settings.DATABASE_URL
 _async_url = re.sub(r"^postgresql(\+\w+)?://", "postgresql+asyncpg://", _raw_url)
+
+print(f"DEBUG: raw_url={_raw_url}")
+
+# Strip 'sslmode' which is not supported by asyncpg
+_async_url = re.sub(r"\?sslmode=[^&]+", "", _async_url)
+_async_url = re.sub(r"&sslmode=[^&]+", "", _async_url)
+
+print(f"DEBUG: async_url={_async_url}")
+
 config.set_main_option("sqlalchemy.url", _async_url)
 
 target_metadata = Base.metadata
@@ -77,11 +86,10 @@ async def run_async_migrations() -> None:
     """
 
     url = config.get_main_option("sqlalchemy.url", "")
-    connect_args = {"ssl": "require"} if "neon.tech" in url else {}
+    connect_args = {"ssl": True} if "neon.tech" in url or "sslmode=require" in settings.DATABASE_URL else {}
 
-    connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
+    connectable = create_async_engine(
+        url,
         poolclass=pool.NullPool,
         connect_args=connect_args,
     )

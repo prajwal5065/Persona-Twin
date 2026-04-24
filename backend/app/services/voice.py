@@ -14,7 +14,6 @@ Supported MIME types → file extensions:
     audio/m4a   → .m4a
 """
 
-from __future__ import annotations
 
 import io
 import logging

@@ -6,8 +6,6 @@ Authentication endpoints:
   POST /auth/login     — OAuth2 password flow, returns a JWT
 """
 
-from __future__ import annotations
-
 import logging
 from datetime import datetime, timedelta, timezone
 
