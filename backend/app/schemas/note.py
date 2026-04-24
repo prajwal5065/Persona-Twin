@@ -13,7 +13,6 @@ _INJECTION_PATTERNS = [
 
 class NoteBase(BaseModel):
     content: str
-    user_id: int
 
 
 class NoteCreate(NoteBase):
@@ -41,10 +40,12 @@ class NoteCreate(NoteBase):
 
 class Note(NoteBase):
     id: int
+    user_id: int
     created_at: datetime
 
     class Config:
         from_attributes = True
+
 
 NoteCreate.model_rebuild()
 Note.model_rebuild()

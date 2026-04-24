@@ -1,5 +1,5 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
 from backend.app.models.note import Note
 from .llm import LLMService
 from collections import Counter
@@ -7,15 +7,18 @@ from datetime import datetime
 from typing import List, Dict, Any
 
 class InsightService:
-    def __init__(self, db: Session, llm_service: LLMService = None):
+    def __init__(self, db: AsyncSession, llm_service: LLMService = None):
         self.db = db
         self.llm = llm_service or LLMService()
 
-    def get_user_insights(self) -> Dict[str, Any]:
+    async def get_user_insights(self, user_id: int) -> Dict[str, Any]:
         """
         Analyzes user notes to detect behavioral patterns and generate qualitative insights via OpenAI.
         """
-        notes = self.db.query(Note).all()
+        stmt = select(Note).where(Note.user_id == user_id).order_by(Note.created_at.asc())
+        result = await self.db.execute(stmt)
+        notes = result.scalars().all()
+        
         if not notes:
             return {
                 "patterns": "No data yet.",
@@ -59,6 +62,8 @@ class InsightService:
         """
         
         try:
+            # Note: LLMService.generate_response is still sync, but we call it from our async method.
+            # In a real production app, we would use an async LLM client.
             qualitative_insights = self.llm.generate_response(prompt)
         except Exception:
             qualitative_insights = "Continue recording notes for more deep-dive AI insights."
