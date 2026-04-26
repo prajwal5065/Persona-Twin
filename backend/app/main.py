@@ -76,6 +76,7 @@ settings = get_settings()
 
 app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)
 
+app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
@@ -83,7 +84,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.add_middleware(RequestLoggingMiddleware)
 
 # Auth router first — exposes /auth/register and /auth/login
 app.include_router(auth.router)
