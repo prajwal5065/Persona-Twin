@@ -10,6 +10,7 @@ class UserCreate(UserBase):
 
 class User(UserBase):
     id: int
+    full_name: Optional[str] = None
     created_at: datetime
 
     class Config:
