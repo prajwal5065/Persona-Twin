@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SelfTwin AI | Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hexagon-mask {
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+        }
+        .glass-panel {
+            background: rgba(0, 204, 102, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid #1E2622;
+        }
+        .emerald-glow {
+            box-shadow: 0 8px 32px rgba(0, 204, 102, 0.15);
+        }
+        body {
+            background-color: #0d150e;
+            color: #dce5d9;
+            overflow-x: hidden;
+        }
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.15;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-container": "#003e3e",
+                    "on-primary-fixed-variant": "#005225",
+                    "outline": "#859585",
+                    "surface": "#0d150e",
+                    "surface-bright": "#333b33",
+                    "surface-container-high": "#242c24",
+                    "primary": "#41e97f",
+                    "surface-container-lowest": "#081009",
+                    "primary-container": "#00cc66",
+                    "surface-container": "#19221a",
+                    "on-error-container": "#ffdad6",
+                    "on-tertiary-fixed-variant": "#7a2f16",
+                    "primary-fixed": "#63ff94",
+                    "on-secondary": "#003737",
+                    "inverse-surface": "#dce5d9",
+                    "surface-dim": "#0d150e",
+                    "on-surface-variant": "#bbcbba",
+                    "on-secondary-fixed": "#002020",
+                    "tertiary": "#ffbdaa",
+                    "on-secondary-fixed-variant": "#004f4f",
+                    "outline-variant": "#3c4a3d",
+                    "tertiary-fixed": "#ffdbd0",
+                    "surface-variant": "#2e372f",
+                    "error": "#ffb4ab",
+                    "background": "#0d150e",
+                    "on-error": "#690005",
+                    "on-primary-container": "#004f24",
+                    "surface-container-highest": "#2e372f",
+                    "secondary-fixed-dim": "#4fdad9",
+                    "on-surface": "#dce5d9",
+                    "secondary-container": "#00b3b3",
+                    "on-primary": "#003918",
+                    "inverse-on-surface": "#2a332a",
+                    "secondary-fixed": "#71f6f6",
+                    "tertiary-fixed-dim": "#ffb59e",
+                    "on-tertiary-fixed": "#3a0b00",
+                    "surface-container-low": "#151e16",
+                    "error-container": "#93000a",
+                    "surface-tint": "#37e279",
+                    "secondary": "#4fdad9",
+                    "on-primary-fixed": "#00210b",
+                    "inverse-primary": "#006d34",
+                    "on-background": "#dce5d9",
+                    "tertiary-container": "#ff9574",
+                    "on-tertiary-container": "#772c13",
+                    "primary-fixed-dim": "#37e279",
+                    "on-tertiary": "#5c1902"
+            },
+            "fontFamily": {
+                    "body-lg": ["Inter"],
+                    "label-bold": ["Inter"],
+                    "h1": ["Inter"],
+                    "body-md": ["Inter"],
+                    "h3": ["Inter"],
+                    "label-mono": ["JetBrains Mono"],
+                    "h2": ["Inter"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-bold": ["12px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "h1": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "h3": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "label-mono": ["14px", {"lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                    "h2": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="font-body-md bg-background text-on-background min-h-screen">
+<!-- Background Orbs -->
+<div class="orb bg-primary w-[500px] h-[500px] -top-48 -left-48"></div>
+<div class="orb bg-secondary w-[400px] h-[400px] bottom-0 -right-24"></div>
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col h-full py-8 px-4 fixed h-screen w-[240px] left-0 border-r border-[#1E2622] bg-black/60 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,204,102,0.15)] z-50">
+<div class="flex flex-col items-center mb-12">
+<div class="w-16 h-16 bg-emerald-500/10 flex items-center justify-center hexagon-mask border border-primary/30 mb-4">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">owl</span>
+</div>
+<h1 class="font-inter font-bold text-xl text-emerald-500 tracking-widest">SELFTWIN</h1>
+<p class="font-inter text-[10px] uppercase font-medium tracking-wide text-zinc-500">AI Synthesis</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 bg-emerald-500/10 text-emerald-500 border-r-2 border-emerald-500 font-inter text-sm font-medium tracking-wide transition-all" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:bg-emerald-500/5 hover:text-emerald-300 transition-all font-inter text-sm font-medium tracking-wide" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span>Digital Twin</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:bg-emerald-500/5 hover:text-emerald-300 transition-all font-inter text-sm font-medium tracking-wide" href="#">
+<span class="material-symbols-outlined">database</span>
+<span>Neural Logs</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:bg-emerald-500/5 hover:text-emerald-300 transition-all font-inter text-sm font-medium tracking-wide" href="#">
+<span class="material-symbols-outlined">model_training</span>
+<span>Training</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:bg-emerald-500/5 hover:text-emerald-300 transition-all font-inter text-sm font-medium tracking-wide" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto space-y-2 border-t border-[#1E2622] pt-6">
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:bg-emerald-500/5 hover:text-emerald-300 transition-all font-inter text-sm font-medium tracking-wide" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:bg-emerald-500/5 hover:text-emerald-300 transition-all font-inter text-sm font-medium tracking-wide" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</aside>
+<!-- TopAppBar (Mobile Only) -->
+<header class="md:hidden flex justify-between items-center w-full px-8 py-6 bg-transparent sticky top-0 z-40">
+<div class="font-inter font-bold text-3xl tracking-tighter text-emerald-500">SelfTwin AI</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-emerald-500 text-2xl">account_circle</span>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="md:ml-[240px] p-6 md:p-12 min-h-screen">
+<!-- Header Section -->
+<header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h2 class="font-h2 text-h2 text-on-surface mb-1">Dashboard</h2>
+<p class="font-body-md text-on-surface-variant">Real-time synchronization of your neural architecture.</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="px-4 py-2 glass-panel rounded-lg flex items-center gap-2 border-emerald-500/30">
+<span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+<span class="font-label-mono text-label-mono text-primary">SYNC ACTIVE</span>
+</div>
+</div>
+</header>
+<!-- Stats Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+<!-- Neural Synapses -->
+<div class="glass-panel p-6 rounded-xl border-t-2 border-t-primary emerald-glow">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">hub</span>
+<span class="text-xs font-label-mono text-on-surface-variant">+12.4%</span>
+</div>
+<h4 class="text-on-surface-variant font-label-bold text-label-bold uppercase tracking-wider mb-2">Neural Synapses</h4>
+<div class="text-4xl font-bold text-on-surface font-inter">4,829,102</div>
+</div>
+<!-- Memory Nodes -->
+<div class="glass-panel p-6 rounded-xl border-t-2 border-t-primary/40">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary">data_object</span>
+<span class="text-xs font-label-mono text-on-surface-variant">+0.8%</span>
+</div>
+<h4 class="text-on-surface-variant font-label-bold text-label-bold uppercase tracking-wider mb-2">Memory Nodes</h4>
+<div class="text-4xl font-bold text-on-surface font-inter">124,055</div>
+</div>
+<!-- AI Alignment -->
+<div class="glass-panel p-6 rounded-xl border-t-2 border-t-primary/40">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary">verified_user</span>
+<span class="text-xs font-label-mono text-on-surface-variant">OPTIMAL</span>
+</div>
+<h4 class="text-on-surface-variant font-label-bold text-label-bold uppercase tracking-wider mb-2">AI Alignment</h4>
+<div class="text-4xl font-bold text-on-surface font-inter">99.98%</div>
+</div>
+</section>
+<!-- Two Column Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Left: Recent Memories -->
+<section class="lg:col-span-7">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-h3 text-h3 text-on-surface">Recent Memories</h3>
+<button class="text-primary text-sm font-medium hover:underline">View Ledger</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Memory Card 1 -->
+<div class="glass-panel p-5 rounded-lg border-l-2 border-l-primary/60 hover:bg-emerald-500/5 transition-colors cursor-pointer group">
+<div class="flex items-center gap-3 mb-3">
+<span class="material-symbols-outlined text-primary text-sm">schedule</span>
+<span class="font-label-mono text-[11px] text-zinc-500">2024.05.21 // 14:22:01</span>
+</div>
+<p class="font-body-md text-on-surface group-hover:text-primary transition-colors">Cognitive pattern recognized: Strategic Planning</p>
+<div class="mt-4 flex gap-2">
+<span class="px-2 py-0.5 bg-on-primary-container/20 text-primary text-[10px] font-bold rounded">NEURAL</span>
+<span class="px-2 py-0.5 bg-on-primary-container/10 text-zinc-400 text-[10px] font-bold rounded">HIGH_PRIORITY</span>
+</div>
+</div>
+<!-- Memory Card 2 -->
+<div class="glass-panel p-5 rounded-lg border-l-2 border-l-zinc-700 hover:bg-emerald-500/5 transition-colors cursor-pointer group">
+<div class="flex items-center gap-3 mb-3">
+<span class="material-symbols-outlined text-primary text-sm">schedule</span>
+<span class="font-label-mono text-[11px] text-zinc-500">2024.05.21 // 11:05:44</span>
+</div>
+<p class="font-body-md text-on-surface group-hover:text-primary transition-colors">Integration of semantic web protocol completed.</p>
+<div class="mt-4 flex gap-2">
+<span class="px-2 py-0.5 bg-on-primary-container/20 text-primary text-[10px] font-bold rounded">SYSTEM</span>
+</div>
+</div>
+<!-- Memory Card 3 -->
+<div class="glass-panel p-5 rounded-lg border-l-2 border-l-zinc-700 hover:bg-emerald-500/5 transition-colors cursor-pointer group">
+<div class="flex items-center gap-3 mb-3">
+<span class="material-symbols-outlined text-primary text-sm">schedule</span>
+<span class="font-label-mono text-[11px] text-zinc-500">2024.05.20 // 23:59:12</span>
+</div>
+<p class="font-body-md text-on-surface group-hover:text-primary transition-colors">Visual synthesis of abstract spatial data stream.</p>
+<div class="mt-4 flex gap-2">
+<span class="px-2 py-0.5 bg-on-primary-container/20 text-primary text-[10px] font-bold rounded">VISUAL</span>
+</div>
+</div>
+<!-- Memory Card 4 -->
+<div class="glass-panel p-5 rounded-lg border-l-2 border-l-zinc-700 hover:bg-emerald-500/5 transition-colors cursor-pointer group">
+<div class="flex items-center gap-3 mb-3">
+<span class="material-symbols-outlined text-primary text-sm">schedule</span>
+<span class="font-label-mono text-[11px] text-zinc-500">2024.05.20 // 18:40:02</span>
+</div>
+<p class="font-body-md text-on-surface group-hover:text-primary transition-colors">Optimization of recursive learning sub-routines.</p>
+<div class="mt-4 flex gap-2">
+<span class="px-2 py-0.5 bg-on-primary-container/20 text-primary text-[10px] font-bold rounded">ALGO</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Right: Hero Visual -->
+<section class="lg:col-span-5 flex flex-col items-center">
+<div class="relative w-full aspect-square max-w-[400px] glass-panel rounded-3xl p-8 flex items-center justify-center emerald-glow overflow-hidden">
+<!-- Geometric Wolf Visual -->
+<div class="relative z-10 w-[280px] h-[280px] hexagon-mask bg-surface-container flex items-center justify-center border border-primary/20">
+<img alt="Geometric Wolf" class="w-full h-full object-cover opacity-80" data-alt="A futuristic geometric low-poly wolf head silhouette glowing with emerald neon lines against a deep black digital background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxFJZ7y2iwvpjxfkduZsq6e6YjM6iNZu_PWfqIykXmwXFHGQALSAbA5yv2fYVf8tJLVxzGIysdoxI4WlhXikyUPS2KOBnW0Aj3BVCOzirDUB7-3DGFhBHxj183oZZbSRsZBL2BTu7IOhQUGhnAqNm48q6qcsAENyvRc3skHu3R66d4W0g3c2j_MS62lnpYNpe-NjnecrWi4SnLEgOeBqlFFdQhh7MF3YwmC3T19zhQ0Nzwgohb-L2UBUDWHzQmMk-WMeNgHWuNM5o"/>
+</div>
+<!-- Floating Decorations -->
+<div class="absolute top-10 left-10 w-12 h-12 glass-panel hexagon-mask flex items-center justify-center border border-primary/40 animate-bounce" style="animation-duration: 3s;">
+<span class="material-symbols-outlined text-primary text-xl">bolt</span>
+</div>
+<div class="absolute bottom-12 right-12 w-16 h-16 glass-panel hexagon-mask flex items-center justify-center border border-secondary/40 animate-pulse">
+<span class="material-symbols-outlined text-secondary text-2xl">psychology</span>
+</div>
+</div>
+<div class="mt-8 text-center">
+<h3 class="font-h3 text-h3 text-primary mb-2">Alpha Unit 01</h3>
+<p class="text-zinc-500 font-label-mono text-sm tracking-widest">SYNCHRONIZATION: 88%</p>
+<button class="mt-6 px-8 py-3 bg-primary-container text-on-primary-container font-bold rounded-none uppercase tracking-tighter hover:bg-primary transition-colors emerald-glow">
+                        Initiate Deep Sync
+                    </button>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 flex justify-around items-center py-3 px-6 pb-safe bg-black/40 backdrop-blur-2xl border-t border-[#1E2622] shadow-[0_-8px_32px_rgba(0,204,102,0.1)]">
+<div class="text-emerald-500 flex flex-col items-center gap-1 font-inter text-[10px] uppercase font-bold tracking-tighter">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span>Home</span>
+</div>
+<div class="text-zinc-500 flex flex-col items-center gap-1 font-inter text-[10px] uppercase font-bold tracking-tighter">
+<span class="material-symbols-outlined">psychology</span>
+<span>Twin</span>
+</div>
+<div class="text-zinc-500 flex flex-col items-center gap-1 font-inter text-[10px] uppercase font-bold tracking-tighter">
+<span class="material-symbols-outlined">analytics</span>
+<span>Logs</span>
+</div>
+<div class="text-zinc-500 flex flex-col items-center gap-1 font-inter text-[10px] uppercase font-bold tracking-tighter">
+<span class="material-symbols-outlined">bolt</span>
+<span>Train</span>
+</div>
+<div class="text-zinc-500 flex flex-col items-center gap-1 font-inter text-[10px] uppercase font-bold tracking-tighter">
+<span class="material-symbols-outlined">person</span>
+<span>User</span>
+</div>
+</nav>
+</body></html>

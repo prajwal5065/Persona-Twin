@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Insights | SelfTwin AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-container": "#003e3e",
+                    "on-primary-fixed-variant": "#005225",
+                    "outline": "#859585",
+                    "surface": "#0d150e",
+                    "surface-bright": "#333b33",
+                    "surface-container-high": "#242c24",
+                    "primary": "#41e97f",
+                    "surface-container-lowest": "#081009",
+                    "primary-container": "#00cc66",
+                    "surface-container": "#19221a",
+                    "on-error-container": "#ffdad6",
+                    "on-tertiary-fixed-variant": "#7a2f16",
+                    "primary-fixed": "#63ff94",
+                    "on-secondary": "#003737",
+                    "inverse-surface": "#dce5d9",
+                    "surface-dim": "#0d150e",
+                    "on-surface-variant": "#bbcbba",
+                    "on-secondary-fixed": "#002020",
+                    "tertiary": "#ffbdaa",
+                    "on-secondary-fixed-variant": "#004f4f",
+                    "outline-variant": "#3c4a3d",
+                    "tertiary-fixed": "#ffdbd0",
+                    "surface-variant": "#2e372f",
+                    "error": "#ffb4ab",
+                    "background": "#0d150e",
+                    "on-error": "#690005",
+                    "on-primary-container": "#004f24",
+                    "surface-container-highest": "#2e372f",
+                    "secondary-fixed-dim": "#4fdad9",
+                    "on-surface": "#dce5d9",
+                    "secondary-container": "#00b3b3",
+                    "on-primary": "#003918",
+                    "inverse-on-surface": "#2a332a",
+                    "secondary-fixed": "#71f6f6",
+                    "tertiary-fixed-dim": "#ffb59e",
+                    "on-tertiary-fixed": "#3a0b00",
+                    "surface-container-low": "#151e16",
+                    "error-container": "#93000a",
+                    "surface-tint": "#37e279",
+                    "secondary": "#4fdad9",
+                    "on-primary-fixed": "#00210b",
+                    "inverse-primary": "#006d34",
+                    "on-background": "#dce5d9",
+                    "tertiary-container": "#ff9574",
+                    "on-tertiary-container": "#772c13",
+                    "primary-fixed-dim": "#37e279",
+                    "on-tertiary": "#5c1902"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body { background-color: #0d150e; color: #dce5d9; overflow-x: hidden; }
+        .glass-panel {
+            background: rgba(0, 204, 102, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid #1E2622;
+        }
+        .hexagon-avatar {
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+        }
+        .emerald-glow {
+            box-shadow: 0 8px 32px rgba(0, 204, 102, 0.15);
+        }
+        .orb {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 204, 102, 0.08) 0%, rgba(0, 204, 102, 0) 70%);
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-background bg-background">
+<!-- Background Orbs -->
+<div class="orb top-[-100px] right-[-100px]"></div>
+<div class="orb bottom-[-100px] left-[200px]"></div>
+<!-- SideNavBar (Shared Component) -->
+<aside class="hidden md:flex flex-col h-full py-8 px-4 fixed h-screen w-[240px] left-0 border-r border-[#1E2622] bg-black/60 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,204,102,0.15)] z-50">
+<div class="flex items-center gap-3 mb-12 px-2">
+<div class="w-10 h-10 bg-primary-container hexagon-avatar flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div>
+<h1 class="text-emerald-500 font-bold text-xl tracking-tight">SELFTWIN</h1>
+<p class="text-zinc-500 font-inter text-xs font-medium tracking-wide">AI Synthesis</p>
+</div>
+</div>
+<nav class="flex-1 space-y-2">
+<!-- Active state determined as Digital Twin/Insights context -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg font-inter text-sm font-medium tracking-wide bg-emerald-500/10 text-emerald-500 border-r-2 border-emerald-500 transition-all" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg font-inter text-sm font-medium tracking-wide text-zinc-400 hover:bg-emerald-500/5 hover:text-emerald-300 transition-all" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span>Digital Twin</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg font-inter text-sm font-medium tracking-wide text-zinc-400 hover:bg-emerald-500/5 hover:text-emerald-300 transition-all" href="#">
+<span class="material-symbols-outlined">database</span>
+<span>Neural Logs</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg font-inter text-sm font-medium tracking-wide text-zinc-400 hover:bg-emerald-500/5 hover:text-emerald-300 transition-all" href="#">
+<span class="material-symbols-outlined">model_training</span>
+<span>Training</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg font-inter text-sm font-medium tracking-wide text-zinc-400 hover:bg-emerald-500/5 hover:text-emerald-300 transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="pt-8 mt-8 border-t border-[#1E2622] space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:text-emerald-300 transition-all text-sm font-medium" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:text-emerald-300 transition-all text-sm font-medium" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-[240px] p-8 lg:p-12 min-h-screen">
+<!-- TopAppBar (Shared Component) -->
+<header class="flex justify-between items-center w-full mb-12">
+<div class="flex flex-col">
+<h2 class="text-zinc-500 font-inter text-sm font-medium uppercase tracking-[0.2em] mb-1">Neural Analytics</h2>
+<h1 class="text-emerald-500 font-inter font-bold text-3xl tracking-tighter">Insights Page</h1>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden lg:flex items-center gap-4">
+<span class="text-emerald-400 font-bold font-inter text-sm transition-colors cursor-pointer">Live Stream</span>
+<span class="text-zinc-500 font-inter text-sm hover:text-emerald-300 transition-colors cursor-pointer">Sync History</span>
+</div>
+<div class="w-10 h-10 hexagon-avatar bg-surface-variant flex items-center justify-center border border-emerald-500/30">
+<span class="material-symbols-outlined text-emerald-500">account_circle</span>
+</div>
+</div>
+</header>
+<!-- Insights Grid -->
+<div class="grid grid-cols-12 gap-8">
+<!-- AI Observations Section -->
+<section class="col-span-12 lg:col-span-8 space-y-8">
+<div class="flex items-center justify-between glass-panel p-8 rounded-xl relative overflow-hidden emerald-glow">
+<div class="z-10">
+<h3 class="text-emerald-500 font-h3 text-h3 mb-4">AI Observations</h3>
+<p class="text-zinc-400 max-w-lg font-body-md text-body-md">
+                            Neural processing of recent behavioral inputs indicates a significant shift in cognitive resonance within the <span class="text-emerald-400 font-bold">Creative Synthesis</span> cluster. Performance remains optimal.
+                        </p>
+</div>
+<div class="hidden sm:block hover:scale-110 transition-transform duration-500 cursor-pointer">
+<img alt="Digital Owl" class="w-[200px] h-[200px] object-cover rounded-full border-2 border-emerald-500/20" data-alt="Sleek mechanical owl with fiber optic eyes glowing emerald green in a dark high-tech laboratory setting, cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbSlCpSYLFQko8FSLk1fv6e-DrhLqd5VIAeusxLoBdjsXVtEGLVHX5iOt8daZ4RgkAlLVjfHeSHloEYxRF1zFy53rTdErbUDCKRAksUg1s4IMKWSh_H0RJn1XuWMPJILsAVLBI_5gboSz6eTyRjZpkNUvSH0_gdiWCW7Oes3IDu1djuAwETVN21V9uMs0bQrIpMLk1ghGbO43_p-8a5tie36ywMFZ2Yt1_nKpLsSOBhmDeX3CAggeyUfG72--Nu8_CeoeupJPa8GU"/>
+</div>
+</div>
+<!-- Bento Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<!-- OCEAN Trait Bars -->
+<div class="glass-panel p-8 rounded-xl emerald-glow">
+<div class="flex items-center justify-between mb-6">
+<h4 class="text-emerald-500 font-label-bold text-label-bold uppercase tracking-widest">OCEAN Trait Profile</h4>
+<span class="material-symbols-outlined text-emerald-500" style="font-variation-settings: 'FILL' 1;">analytics</span>
+</div>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between text-xs mb-2 font-label-mono">
+<span class="text-zinc-400">Openness</span>
+<span class="text-emerald-400">88%</span>
+</div>
+<div class="h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-emerald-500 to-secondary-container w-[88%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-xs mb-2 font-label-mono">
+<span class="text-zinc-400">Conscientiousness</span>
+<span class="text-emerald-400">72%</span>
+</div>
+<div class="h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-emerald-500 to-secondary-container w-[72%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-xs mb-2 font-label-mono">
+<span class="text-zinc-400">Extraversion</span>
+<span class="text-emerald-400">45%</span>
+</div>
+<div class="h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-emerald-500 to-secondary-container w-[45%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-xs mb-2 font-label-mono">
+<span class="text-zinc-400">Agreeableness</span>
+<span class="text-emerald-400">64%</span>
+</div>
+<div class="h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-emerald-500 to-secondary-container w-[64%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-xs mb-2 font-label-mono">
+<span class="text-zinc-400">Neuroticism</span>
+<span class="text-emerald-400">12%</span>
+</div>
+<div class="h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-emerald-500 to-secondary-container w-[12%]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Activity Chart -->
+<div class="glass-panel p-8 rounded-xl emerald-glow flex flex-col">
+<div class="flex items-center justify-between mb-6">
+<h4 class="text-emerald-500 font-label-bold text-label-bold uppercase tracking-widest">Synthesis Activity</h4>
+<div class="flex gap-1">
+<div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+<div class="w-1.5 h-1.5 bg-emerald-500/30 rounded-full"></div>
+</div>
+</div>
+<div class="flex-1 flex items-end justify-between gap-2 px-2">
+<div class="w-full bg-emerald-500/20 h-[30%] rounded-t-sm hover:bg-emerald-500/40 transition-all"></div>
+<div class="w-full bg-emerald-500/40 h-[60%] rounded-t-sm hover:bg-emerald-500/60 transition-all"></div>
+<div class="w-full bg-emerald-500 h-[45%] rounded-t-sm hover:bg-emerald-500/80 transition-all"></div>
+<div class="w-full bg-emerald-500/60 h-[85%] rounded-t-sm hover:bg-emerald-500/90 transition-all"></div>
+<div class="w-full bg-emerald-500/10 h-[20%] rounded-t-sm hover:bg-emerald-500/30 transition-all"></div>
+<div class="w-full bg-secondary-container h-[70%] rounded-t-sm hover:bg-secondary-container/80 transition-all"></div>
+<div class="w-full bg-emerald-500/40 h-[55%] rounded-t-sm hover:bg-emerald-500/60 transition-all"></div>
+<div class="w-full bg-emerald-500 h-[95%] rounded-t-sm hover:bg-emerald-500/80 transition-all"></div>
+</div>
+<div class="flex justify-between mt-4 font-label-mono text-[10px] text-zinc-500 uppercase tracking-tighter">
+<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span><span>Cur</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Sidebar Insights Section -->
+<aside class="col-span-12 lg:col-span-4 space-y-8">
+<!-- Simulation Glass Card -->
+<div class="glass-panel p-8 rounded-xl emerald-glow border-t-2 border-emerald-500">
+<h4 class="text-emerald-500 font-label-bold text-label-bold uppercase tracking-widest mb-6">Active Simulation</h4>
+<div class="flex flex-col items-center justify-center py-6">
+<!-- SVG Progress Ring -->
+<div class="relative w-32 h-32 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-surface-container-highest" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-width="4"></circle>
+<circle class="text-emerald-500" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-dasharray="364" stroke-dashoffset="100" stroke-width="4"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-2xl font-bold font-inter text-emerald-500">72%</span>
+<span class="text-[10px] text-zinc-500 uppercase tracking-widest">Coherence</span>
+</div>
+</div>
+<div class="mt-8 w-full text-center">
+<p class="text-zinc-400 font-body-md text-sm italic mb-2">Simulating: Social Dynamics v4.2</p>
+<div class="flex justify-center gap-4 mt-4">
+<button class="px-4 py-2 bg-emerald-500 text-black font-label-bold text-[10px] rounded hover:opacity-80 transition-opacity uppercase tracking-widest">Accelerate</button>
+<button class="px-4 py-2 border border-emerald-500/50 text-emerald-500 font-label-bold text-[10px] rounded hover:bg-emerald-500/5 transition-all uppercase tracking-widest">Pause</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Result Text Area -->
+<div class="glass-panel p-8 rounded-xl bg-black/40">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-emerald-500 text-sm">terminal</span>
+<h4 class="text-zinc-500 font-label-bold text-[11px] uppercase tracking-widest">Analysis Logs</h4>
+</div>
+<div class="font-label-mono text-emerald-400/90 text-sm leading-relaxed">
+<p class="mb-4">&gt; Synchronizing neural pathways...</p>
+<p class="mb-4">&gt; Analysis complete: Identity echo verified with 99.4% accuracy.</p>
+<p class="border-l-2 border-emerald-500 pl-4 py-1 text-zinc-300">
+                            "The user demonstrates a marked preference for technical depth over abstract generalization. Recommend increasing focus on data-driven feedback loops for the next 24-hour cycle."
+                        </p>
+<p class="mt-4 animate-pulse">_</p>
+</div>
+</div>
+<!-- Stats Card -->
+<div class="grid grid-cols-2 gap-4">
+<div class="glass-panel p-4 rounded-lg flex flex-col items-center">
+<span class="text-zinc-500 text-[10px] uppercase font-bold tracking-tighter mb-1">Latency</span>
+<span class="text-emerald-500 font-inter font-bold text-xl">12ms</span>
+</div>
+<div class="glass-panel p-4 rounded-lg flex flex-col items-center">
+<span class="text-zinc-500 text-[10px] uppercase font-bold tracking-tighter mb-1">Uptime</span>
+<span class="text-emerald-500 font-inter font-bold text-xl">99.9%</span>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- BottomNavBar (Shared Component - Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 flex justify-around items-center py-3 px-6 pb-safe bg-black/40 backdrop-blur-2xl border-t border-[#1E2622] shadow-[0_-8px_32px_rgba(0,204,102,0.1)]">
+<div class="text-zinc-500 flex flex-col items-center gap-1 active:bg-emerald-500/10">
+<span class="material-symbols-outlined">home</span>
+<span class="font-inter text-[10px] uppercase font-bold tracking-tighter">Home</span>
+</div>
+<div class="text-emerald-500 flex flex-col items-center gap-1">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<span class="font-inter text-[10px] uppercase font-bold tracking-tighter">Twin</span>
+</div>
+<div class="text-zinc-500 flex flex-col items-center gap-1 active:bg-emerald-500/10">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-inter text-[10px] uppercase font-bold tracking-tighter">Logs</span>
+</div>
+<div class="text-zinc-500 flex flex-col items-center gap-1 active:bg-emerald-500/10">
+<span class="material-symbols-outlined">bolt</span>
+<span class="font-inter text-[10px] uppercase font-bold tracking-tighter">Train</span>
+</div>
+<div class="text-zinc-500 flex flex-col items-center gap-1 active:bg-emerald-500/10">
+<span class="material-symbols-outlined">person</span>
+<span class="font-inter text-[10px] uppercase font-bold tracking-tighter">User</span>
+</div>
+</nav>
+</body></html>
