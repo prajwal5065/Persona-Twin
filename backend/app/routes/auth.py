@@ -20,6 +20,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.db.database import get_async_db
 from backend.app.models.user import User
 from backend.app.schemas.auth import TokenResponse, UserCreate
+from backend.app.schemas.user import User as UserSchema
+from backend.app.dependencies.auth import get_current_user
 from backend.config import get_settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -92,7 +94,11 @@ async def register(
         )
 
     hashed_pw: str = _hash_password(body.password)
-    new_user = User(email=body.email, hashed_password=hashed_pw)
+    new_user = User(
+        email=body.email, 
+        hashed_password=hashed_pw,
+        full_name=body.full_name
+    )
 
     try:
         db.add(new_user)
@@ -138,3 +144,14 @@ async def login(
 
     token: str = _create_access_token(user.id)
     return TokenResponse(access_token=token)
+
+
+@router.get("/me", response_model=UserSchema, summary="Get current user")
+async def get_me(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """
+    Return the current authenticated user metadata.
+    """
+    return current_user
+
