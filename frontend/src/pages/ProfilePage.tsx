@@ -2,19 +2,13 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '../store/auth.store';
 import { profileApi } from '../api/profile.api';
-import { PersonalityProfile } from '../types';
+import type { PersonalityProfile } from '../types';
 import { User, Brain, Shield, Rocket, Heart, Activity, Loader2, Sparkles } from 'lucide-react';
 
 export function ProfilePage() {
   const user = useAuthStore((state) => state.user);
   const [profile, setProfile] = useState<PersonalityProfile | null>(user?.personality_profile || null);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!profile) {
-      fetchProfile();
-    }
-  }, []);
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -27,6 +21,12 @@ export function ProfilePage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!profile) {
+      fetchProfile();
+    }
+  }, []);
 
   const oceanData = [
     { key: 'openness', label: 'Openness', icon: Rocket, color: 'text-blue-400', progress: profile?.openness },

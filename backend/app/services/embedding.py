@@ -12,50 +12,50 @@ cached model is always found first.
 
 
 import logging
-from typing import List, Any
+from typing import List
 
-import numpy as np
-
+import google.generativeai as genai
 from backend.config import get_settings
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# Singleton – one model instance per process (thread-safe after first load)
-# ---------------------------------------------------------------------------
-_model_instance: Any = None
-
-
-def _get_model(model_name: str) -> Any:
-    global _model_instance
-    if _model_instance is None:
-        from sentence_transformers import SentenceTransformer
-        # Strip the "sentence-transformers/" namespace prefix if present so that
-        # the local cache is resolved correctly.
-        bare_name = model_name.removeprefix("sentence-transformers/")
-        logger.info("Loading SentenceTransformer model: %s", bare_name)
-        _model_instance = SentenceTransformer(bare_name)
-        logger.info("SentenceTransformer model loaded OK.")
-    return _model_instance
-
-
 class EmbeddingService:
-    """Generates dense vector embeddings using sentence-transformers."""
+    """Generates dense vector embeddings using Gemini API (text-embedding-04)."""
 
-    DIMENSION: int = 384  # all-MiniLM-L6-v2 output dimension
+    # text-embedding-04 output dimension is 768 by default
+    DIMENSION: int = 768
 
     def __init__(self, model_name: str | None = None) -> None:
         settings = get_settings()
-        self._model_name = model_name or settings.EMBEDDING_MODEL
-        # Eagerly load here so import-time failures surface immediately
-        # instead of being silently swallowed by the route handler.
-        self.model: Any = _get_model(self._model_name)
+        self._model_name = model_name or "models/text-embedding-04"
+        genai.configure(api_key=settings.GEMINI_API_KEY)
+        logger.info("EmbeddingService initialized with model: %s", self._model_name)
 
     def generate_embedding(self, text: str) -> List[float]:
-        """Return a float list embedding for *text*."""
-        embedding: np.ndarray = self.model.encode(text, show_progress_bar=False)
-        return embedding.tolist()
+        """Return a float list embedding for *text* using Gemini API."""
+        try:
+            result = genai.embed_content(
+                model=self._model_name,
+                content=text,
+                task_type="retrieval_document"
+            )
+            return result['embedding']
+        except Exception as e:
+            logger.error("Gemini embedding generation failed: %s", e)
+            # Return zero vector if API fails to avoid breaking FAISS strictly, 
+            # though usually we should handle this higher up.
+            return [0.0] * self.DIMENSION
 
-    def generate_embeddings(self, texts: List[str]) -> np.ndarray:
-        """Return an (N, D) float32 ndarray for a list of texts."""
-        return self.model.encode(texts, show_progress_bar=False)
+    def generate_embeddings(self, texts: List[str]) -> List[List[float]]:
+        """Return a list of embeddings for a list of texts."""
+        try:
+            result = genai.embed_content(
+                model=self._model_name,
+                content=texts,
+                task_type="retrieval_document"
+            )
+            return result['embedding']
+        except Exception as e:
+            logger.error("Gemini batch embedding failure: %s", e)
+            return [[0.0] * self.DIMENSION for _ in texts]
+

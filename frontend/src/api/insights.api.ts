@@ -1,5 +1,5 @@
 import client from './client';
-import { InsightResponse, SimulationResponse } from '../types';
+import type { InsightResponse, SimulationResponse } from '../types';
 
 export const insightsApi = {
   getInsights: () => client.get<InsightResponse>('/insights'),

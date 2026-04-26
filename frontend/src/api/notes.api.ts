@@ -1,5 +1,5 @@
 import client from './client';
-import { Note } from '../types';
+import type { Note } from '../types';
 
 export const notesApi = {
   getNotes: (params?: any) => client.get<Note[]>('/notes', { params }),

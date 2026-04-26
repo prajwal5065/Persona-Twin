@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { insightsApi } from '../api/insights.api';
-import { InsightResponse, SimulationResponse } from '../types';
+import type { InsightResponse, SimulationResponse } from '../types';
 import { BarChart2, Lightbulb, Zap, HelpCircle, Loader2, Play } from 'lucide-react';
 
 export function InsightsPage() {
@@ -10,10 +10,6 @@ export function InsightsPage() {
   const [scenario, setScenario] = useState('');
   const [simulation, setSimulation] = useState<SimulationResponse | null>(null);
   const [simLoading, setSimLoading] = useState(false);
-
-  useEffect(() => {
-    fetchInsights();
-  }, []);
 
   const fetchInsights = async () => {
     setLoading(true);
@@ -24,6 +20,10 @@ export function InsightsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchInsights();
+  }, []);
 
   const handleSimulate = async (e: React.FormEvent) => {
     e.preventDefault();

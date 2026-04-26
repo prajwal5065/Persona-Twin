@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '../store/auth.store';
 import { useNotesStore } from '../store/notes.store';
-import { StickyNote, MessageSquare, BrainCode, TrendingUp } from 'lucide-react';
+import { StickyNote, MessageSquare, BrainCog, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function DashboardPage() {
@@ -16,7 +16,7 @@ export function DashboardPage() {
   const stats = [
     { label: 'Total Memories', value: notes.length, icon: StickyNote, color: 'text-blue-400' },
     { label: 'Chat Sessions', value: '12', icon: MessageSquare, color: 'text-purple-400' },
-    { label: 'Persona Clarity', value: '85%', icon: BrainCode, color: 'text-pink-400' },
+    { label: 'Persona Clarity', value: '85%', icon: BrainCog, color: 'text-pink-400' },
     { label: 'Growth Trend', value: '+12%', icon: TrendingUp, color: 'text-green-400' },
   ];
 

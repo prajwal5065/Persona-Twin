@@ -31,8 +31,8 @@ logger = logging.getLogger(__name__)
 _cache: Dict[int, "VectorDBService"] = {}
 _cache_lock: Lock = Lock()
 
-# Default embedding dimension for all-MiniLM-L6-v2
-_DIMENSION = 384
+# Default embedding dimension for Gemini text-embedding-04
+_DIMENSION = 768
 
 
 def _index_dir() -> str:

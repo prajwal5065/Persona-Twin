@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { ChatMessage } from '../types';
+import type { ChatMessage } from '../types';
 import { chatApi } from '../api/chat.api';
 
 interface ChatState {
