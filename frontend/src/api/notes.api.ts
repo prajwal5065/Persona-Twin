@@ -12,4 +12,5 @@ export const notesApi = {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
+  deleteNote: (id: number) => client.delete(`/notes/${id}`),
 };

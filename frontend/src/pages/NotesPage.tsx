@@ -1,166 +1,335 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, FileText, Sparkles, Search, X, Trash2, Calendar, Tag as TagIcon } from 'lucide-react';
 import { useNotesStore } from '../store/notes.store';
-import { Plus, Search, Calendar, Mic, StickyNote } from 'lucide-react';
-import { notesApi } from '../api/notes.api';
-import { CustomSpinner } from '../components/ui/CustomSpinner';
-import beetleTexture from '../assets/beetle_texture.png';
-import { cn } from '../lib/utils';
+import PageHeader from '../components/PageHeader';
+import EmptyState from '../components/EmptyState';
 
-export function NotesPage() {
-  const { notes, fetchNotes, addNote, loading } = useNotesStore();
-  const [content, setContent] = useState('');
-  const [search, setSearch] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isReindexing, setIsReindexing] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+// ─── types & constants ───────────────────────────────────────────────────────
 
-  useEffect(() => {
-    fetchNotes();
-  }, [fetchNotes]);
+const TAG_COLORS: Record<string, string> = {
+  productivity: 'text-blue-400 bg-blue-400/10 border-blue-400/20',
+  habits: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
+  psychology: 'text-violet-400 bg-violet-400/10 border-violet-400/20',
+  work: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
+  energy: 'text-orange-400 bg-orange-400/10 border-orange-400/20',
+  values: 'text-rose-400 bg-rose-400/10 border-rose-400/20',
+  philosophy: 'text-cyan-400 bg-cyan-400/10 border-cyan-400/20',
+  growth: 'text-teal-400 bg-teal-400/10 border-teal-400/20',
+  'decision-making': 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20',
+};
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!content.trim() || isSubmitting) return;
-    
-    setIsSubmitting(true);
-    try {
-      await addNote(content);
-      setContent('');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+/** 
+ * Virtual parsing: Extracts [TITLE:...] and [TAGS:...] from the content string.
+ */
+function parseNoteContent(rawContent: string) {
+  const titleMatch = rawContent.match(/\[TITLE:(.*?)\]/);
+  const tagsMatch = rawContent.match(/\[TAGS:(.*?)\]/);
+  
+  let content = rawContent;
+  let title = '';
+  let tags: string[] = [];
 
-  const handleReindex = async () => {
-    setIsReindexing(true);
-    try {
-      await notesApi.reindex();
-    } finally {
-      setIsReindexing(false);
-    }
-  };
+  if (titleMatch) {
+    title = titleMatch[1];
+    content = content.replace(titleMatch[0], '');
+  }
+  if (tagsMatch) {
+    tags = tagsMatch[1].split(',').filter(Boolean);
+    content = content.replace(tagsMatch[0], '');
+  }
 
-  const filteredNotes = notes.filter(n => 
-    n.content.toLowerCase().includes(search.toLowerCase())
-  );
+  content = content.trim();
+  
+  if (!title) {
+    const lines = content.split('\n');
+    title = lines[0].slice(0, 50) + (lines[0].length > 50 ? '...' : '');
+  }
+
+  return { title, tags, content };
+}
+
+function packNoteContent(title: string, tags: string[], content: string) {
+  return `[TITLE:${title}] [TAGS:${tags.join(',')}] ${content}`;
+}
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
+// ─── sub-components ──────────────────────────────────────────────────────────
+
+function NoteCard({ note, onDelete }: { note: any; onDelete: (id: number) => void }) {
+  const [hovered, setHovered] = useState(false);
+  const { title, tags, content } = note;
+  
+  // Simulated linked insights for the UI feel
+  const linkedInsights = Math.floor(Math.random() * 3);
+
+  const tagClass = (tag: string) => TAG_COLORS[tag] || 'text-muted-foreground bg-surface-700 border-surface-600';
 
   return (
-    <div className="max-w-5xl mx-auto space-y-12 pb-20">
-      <header className="relative glass-strong p-8 rounded-[32px] overflow-hidden group">
-        {/* Beetle Texture background */}
-        <div className="absolute right-0 top-0 h-full w-2/3 pointer-events-none opacity-40 mix-blend-screen group-hover:opacity-60 transition-opacity duration-700">
-           <img 
-            src={beetleTexture} 
-            className="h-full w-full object-cover" 
-            style={{ 
-              maskImage: 'linear-gradient(to right, transparent, black)',
-              WebkitMaskImage: 'linear-gradient(to right, transparent, black)'
-            }}
-          />
-        </div>
-
-        <div className="relative z-10 space-y-2">
-          <h1 className="text-[32px] font-bold tracking-[-0.03em]">Base <span className="gradient-text">Memories</span></h1>
-          <p className="text-muted-foreground text-[14px] max-w-sm">The semantic foundation of your digital avatar. Every note expands your twin's intelligence.</p>
-        </div>
-
-        <button
-          onClick={handleReindex}
-          disabled={isReindexing}
-          className="absolute bottom-6 right-6 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[12px] font-semibold hover:bg-white/10 transition-all flex items-center gap-2 disabled:opacity-50 active-click z-10"
-        >
-          {isReindexing ? <CustomSpinner className="w-3.5 h-3.5" /> : <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />}
-          <span>Synapse Reindexing</span>
-        </button>
-      </header>
-
-      <form onSubmit={handleSubmit} className="glass p-8 rounded-[24px] space-y-6 relative overflow-hidden">
-        <textarea
-          ref={textareaRef}
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Translate your current experience into data..."
-          className="w-full h-32 bg-transparent border-none focus:ring-0 resize-none text-[18px] placeholder:text-muted-foreground/20 leading-relaxed font-medium"
-          required
-        />
-        
-        <div className="flex items-center justify-between pt-6 border-t border-white/[0.03]">
-          <div className="flex items-center gap-4">
-            <button type="button" className="p-2.5 rounded-xl hover:bg-white/5 text-muted-foreground transition-all active-click">
-              <Mic className="w-5 h-5 stroke-[1.5]" />
-            </button>
-            <div className={cn(
-              "char-count font-mono text-primary/60",
-              content.length > 4500 && "visible"
-            )}>
-              {content.length}/5000
-            </div>
-          </div>
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+      className="card-hover p-5 cursor-pointer group relative flex flex-col h-full"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div className="flex items-start justify-between gap-3 mb-2.5">
+        <h3 className="text-sm font-semibold text-white leading-snug group-hover:text-accent-400 transition-colors line-clamp-1">
+          {title}
+        </h3>
+        {hovered && (
           <button
-            type="submit"
-            disabled={!content.trim() || isSubmitting}
-            className="px-8 py-3 rounded-2xl bg-primary text-white font-bold hover:bg-primary/90 transition-all disabled:opacity-50 flex items-center gap-3 emerald-glow active-click"
+            onClick={(e) => { e.stopPropagation(); onDelete(note.id); }}
+            className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-400/10 transition-all active:scale-90"
           >
-            {isSubmitting ? <CustomSpinner className="w-4 h-4" /> : <Plus className="w-4 h-4 stroke-[2.5]" />}
+            <Trash2 size={13} />
+          </button>
+        )}
+      </div>
+      <p className="text-sm text-muted-foreground leading-relaxed mb-4 line-clamp-3 flex-1">{content}</p>
+      <div className="flex items-center justify-between mt-auto pt-4 border-t border-surface-700/50">
+        <div className="flex flex-wrap gap-1.5">
+          {tags.length > 0 ? (
+            tags.map((tag: string) => (
+              <span key={tag} className={`badge border text-[10px] ${tagClass(tag)}`}>
+                {tag}
+              </span>
+            ))
+          ) : (
+            <span className="text-[10px] text-muted-foreground/30 flex items-center gap-1">
+              <TagIcon size={10} /> untagged
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-3 text-[10px] text-muted-foreground flex-shrink-0 ml-2">
+          {linkedInsights > 0 && (
+            <span className="flex items-center gap-1 text-accent-400 font-bold">
+              <Sparkles size={10} /> {linkedInsights} insights
+            </span>
+          )}
+          <span className="flex items-center gap-1">
+            <Calendar size={10} />
+            {timeAgo(note.created_at)}
+          </span>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function AddNoteModal({ onClose, onAdd }: { onClose: () => void; onAdd: (content: string) => void }) {
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [tagInput, setTagInput] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+
+  const addTag = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && tagInput.trim()) {
+      e.preventDefault();
+      setTags((prev) => [...new Set([...prev, tagInput.trim().toLowerCase()])]);
+      setTagInput('');
+    }
+  };
+
+  const removeTag = (tag: string) => setTags((prev) => prev.filter((t) => t !== tag));
+
+  const handleSubmit = () => {
+    if (!title.trim() || !content.trim()) return;
+    const packed = packNoteContent(title.trim(), tags, content.trim());
+    onAdd(packed);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 animate-fade-in p-4">
+      <div className="bg-surface-800 border border-surface-600 rounded-2xl w-full max-w-lg shadow-2xl animate-scale-in">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-surface-700">
+          <h2 className="text-sm font-semibold text-white">Establish New Memory</h2>
+          <button onClick={onClose} className="btn-ghost p-1.5"><X size={16} /></button>
+        </div>
+        <div className="px-6 py-5 space-y-5">
+          <div>
+            <label className="section-label block mb-2">Subject Coordinate</label>
+            <input
+              autoFocus
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Brief identifier..."
+              className="input-base"
+            />
+          </div>
+          <div>
+            <label className="section-label block mb-2">Cognitive Content</label>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Write freely. Your twin will synchronize with this data..."
+              rows={5}
+              className="input-base resize-none"
+            />
+          </div>
+          <div>
+            <label className="section-label block mb-2">Neural Tags</label>
+            <input
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={addTag}
+              placeholder="Add tag and press Enter"
+              className="input-base"
+            />
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-3">
+                {tags.map((tag) => (
+                  <span key={tag} className="badge bg-accent-500/10 text-accent-400 border border-accent-500/20 gap-1.5 pl-2 pr-1">
+                    {tag}
+                    <button onClick={() => removeTag(tag)} className="hover:text-white p-0.5 rounded-sm"><X size={10} /></button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-surface-700">
+          <button onClick={onClose} className="btn-secondary">Cancel</button>
+          <button
+            onClick={handleSubmit}
+            disabled={!title.trim() || !content.trim()}
+            className="btn-primary disabled:opacity-40"
+          >
+            <FileText size={14} />
             Establish Memory
           </button>
         </div>
-      </form>
+      </div>
+    </div>
+  );
+}
 
-      <div className="relative group">
-        <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Query the consciousness base..."
-          className="w-full pl-12 pr-6 py-4 rounded-2xl bg-black/40 border border-[#00CC6610] focus:border-primary/40 focus:ring-4 focus:ring-primary/5 outline-none transition-all text-sm font-medium"
-        />
+// ─── main component ──────────────────────────────────────────────────────────
+
+export function NotesPage() {
+  const { notes, addNote, deleteNote, fetchNotes } = useNotesStore();
+  const [search, setSearch] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [activeTag, setActiveTag] = useState<string | null>(null);
+
+  useEffect(() => { fetchNotes(); }, [fetchNotes]);
+
+  const parsedNotes = notes.map(n => ({ ...n, ...parseNoteContent(n.content) }));
+  const allTags = [...new Set(parsedNotes.flatMap(n => n.tags))];
+
+  const filtered = parsedNotes.filter((n) => {
+    const matchesSearch = !search || 
+      n.title.toLowerCase().includes(search.toLowerCase()) || 
+      n.content.toLowerCase().includes(search.toLowerCase());
+    const matchesTag = !activeTag || n.tags.includes(activeTag);
+    return matchesSearch && matchesTag;
+  });
+
+  return (
+    <div className="px-8 py-8 max-w-6xl mx-auto">
+      <PageHeader
+        title="Memories"
+        subtitle="Every note feeds your twin's understanding of your cognitive fingerprint."
+        actions={
+          <button onClick={() => setShowModal(true)} className="btn-primary">
+            <Plus size={14} strokeWidth={3} />
+            New Memory
+          </button>
+        }
+      />
+
+      {/* Filter Layer */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="relative w-full max-w-sm group">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-accent-400 transition-colors" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search memory patterns..."
+            className="input-base pl-9"
+          />
+        </div>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setActiveTag(activeTag === tag ? null : tag)}
+              className={`text-[11px] px-3 py-1 rounded-full border transition-all duration-200 font-bold uppercase tracking-wider ${
+                activeTag === tag
+                  ? 'bg-accent-500/15 text-accent-400 border-accent-500/30 shadow-[0_0_15px_rgba(0,204,102,0.1)]'
+                  : 'text-muted-foreground border-surface-700 hover:border-surface-600 hover:text-white'
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
+          {activeTag && (
+             <button onClick={() => setActiveTag(null)} className="text-[10px] text-muted-foreground hover:text-white ml-2 flex items-center gap-1">
+               <X size={10} /> Clear
+             </button>
+          )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
-        <AnimatePresence>
-          {filteredNotes.map((note, index) => (
-            <motion.div
-              key={note.id}
-              layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ delay: index * 0.05 }}
-              className="glass p-6 rounded-[24px] group transition-all hover-lift relative overflow-hidden"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-2 text-[11px] text-muted-foreground font-mono">
-                  <Calendar className="w-3 h-3 text-primary/60" />
-                  {new Date(note.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                </div>
-                <div className="w-1.5 h-1.5 rounded-full bg-[#00CC6620] group-hover:bg-primary transition-colors" />
-              </div>
-              <p className="text-[14px] leading-relaxed text-foreground/80 group-hover:text-foreground transition-colors whitespace-pre-wrap">
-                {note.content}
-              </p>
-              <div className="absolute left-0 top-0 h-full w-[2px] bg-primary scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300" />
-            </motion.div>
-          ))}
-        </AnimatePresence>
-        
-        {filteredNotes.length === 0 && !loading && (
-          <div className="col-span-full h-64 dashed-trace flex flex-col items-center justify-center text-center p-8 opacity-40">
-             <StickyNote className="w-12 h-12 mb-4 text-muted-foreground/40" strokeWidth={1} />
-             <p className="text-[14px] font-medium tracking-wide uppercase">No corresponding patterns found</p>
-          </div>
+      {/* Vital Stats */}
+      <div className="flex items-center gap-8 mb-8 px-1 text-sm text-muted-foreground">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl font-bold text-white tracking-tight">{notes.length}</span>
+          <span className="section-label translate-y-0.5">Established</span>
+        </div>
+        <div className="h-6 w-px bg-surface-700" />
+        <div>
+          <span className="text-white font-bold">{allTags.length}</span>
+          <span className="ml-2 section-label">Active Topics</span>
+        </div>
+        {notes.length > 0 && (
+          <>
+            <div className="h-6 w-px bg-surface-700" />
+            <div className="text-[11px] font-medium tracking-tight">
+              Last Synced <span className="text-white ml-1.5">{timeAgo(notes[0].created_at)}</span>
+            </div>
+          </>
         )}
       </div>
 
-      {loading && filteredNotes.length === 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="glass p-6 rounded-[24px] h-40 skeleton" />
-          ))}
+      {/* Grid Display */}
+      {filtered.length === 0 ? (
+        <EmptyState
+          icon={FileText}
+          title={search || activeTag ? "No matches found" : "Neural base empty"}
+          description={search || activeTag ? "Try adjusting your query or filters." : "Start capturing your thoughts. Each memory expands your twin's intelligence."}
+          action={
+            !search && !activeTag && (
+              <button onClick={() => setShowModal(true)} className="btn-primary">
+                <Plus size={14} /> Write your first memory
+              </button>
+            )
+          }
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <AnimatePresence mode="popLayout">
+            {filtered.map((note) => (
+              <NoteCard key={note.id} note={note} onDelete={deleteNote} />
+            ))}
+          </AnimatePresence>
         </div>
       )}
+
+      {showModal && <AddNoteModal onClose={() => setShowModal(false)} onAdd={addNote} />}
     </div>
   );
 }

@@ -1,3 +1,5 @@
+import json
+import re
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from backend.app.models.note import Note
@@ -13,7 +15,7 @@ class DecisionService:
         self.llm_service = llm_service or LLMService()
         self.style_extractor = style_extractor or StyleExtractorService()
 
-    async def simulate_decision(self, user_id: int, scenario: str) -> Dict[str, str]:
+    async def simulate_decision(self, user_id: int, scenario: str) -> Dict:
         """
         Retrieves relevant history, analyzes user style, and predicts a decision for a given scenario.
         """
@@ -52,27 +54,49 @@ class DecisionService:
         {history_context}
 
         Task:
-        1. Predict the likely decision.
-        2. Provide clear reasoning based on their past patterns, values, and writing style.
-        3. Respond as the Digital Twin.
+        Predict the likely decision and provide a detailed analysis.
+        Respond as the user's Digital Twin.
 
-        Your response MUST be in this format:
-        DECISION: [One sentence prediction]
-        REASONING: [Multi-sentence explanation of why this matches the user's persona]
+        Your response MUST be a valid JSON object with the following structure:
+        {{
+          "predicted_decision": "One sentence summary of the decision",
+          "confidence": number (0-100),
+          "reasoning": [
+            {{ "label": "Risk Tolerance", "score": number (0-100), "note": "one sentence explaining why" }},
+            {{ "label": "Pattern Match", "score": number (0-100), "note": "one sentence explaining why" }},
+            {{ "label": "Values Alignment", "score": number (0-100), "note": "one sentence explaining why" }},
+            {{ "label": "Energy Read", "score": number (0-100), "note": "one sentence explaining why" }}
+          ],
+          "alternatives": ["alternative path 1", "alternative path 2", "alternative path 3"]
+        }}
         """
         
         raw_response = self.llm_service.generate_response(prompt, history_context, style_profile)
         
-        # Simple parsing logic
-        decision = "Uncertain"
-        reasoning = raw_response
-        
-        if "DECISION:" in raw_response and "REASONING:" in raw_response:
-            parts = raw_response.split("REASONING:")
-            decision = parts[0].replace("DECISION:", "").strip()
-            reasoning = parts[1].strip()
-
-        return {
-            "predicted_decision": decision,
-            "reasoning": reasoning
-        }
+        # Parse JSON from response
+        try:
+            # Look for JSON block if LLM added conversational text
+            json_match = re.search(r'\{.*\}', raw_response, re.DOTALL)
+            if json_match:
+                result = json.loads(json_match.group(0))
+                # Validate keys
+                required = ["predicted_decision", "confidence", "reasoning", "alternatives"]
+                if all(k in result for k in required):
+                    return result
+            
+            # Fallback if parsing fails
+            return {
+                "predicted_decision": "Synthesis inconclusive. Proceed with caution.",
+                "confidence": 50,
+                "reasoning": [
+                    { "label": "Analysis", "score": 50, "note": "The available neural data is insufficient for a high-confidence prediction." }
+                ],
+                "alternatives": ["Establish more memories to improve simulation accuracy."]
+            }
+        except Exception:
+            return {
+                "predicted_decision": "Neural uplink interrupted.",
+                "confidence": 0,
+                "reasoning": [],
+                "alternatives": ["Try again in a moment."]
+            }

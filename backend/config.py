@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     DATABASE_URL: str = "postgresql://user:password@localhost/dbname"
     SECRET_KEY: str = "your-secret-key"
-    CORS_ORIGINS: str = Field("http://localhost:3000,http://localhost:5173", validation_alias="ALLOWED_ORIGINS")
+    CORS_ORIGINS: str = Field("http://localhost:3000,http://localhost:5173,http://localhost:5174", validation_alias="ALLOWED_ORIGINS")
     
     @property
     def ALLOWED_ORIGINS(self) -> list[str]:

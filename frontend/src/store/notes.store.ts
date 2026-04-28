@@ -7,9 +7,10 @@ interface NotesState {
   loading: boolean;
   fetchNotes: () => Promise<void>;
   addNote: (content: string) => Promise<Note>;
+  deleteNote: (id: number) => Promise<void>;
 }
 
-export const useNotesStore = create<NotesState>((set) => ({
+export const useNotesStore = create<NotesState>((set, get) => ({
   notes: [],
   loading: false,
   fetchNotes: async () => {
@@ -25,5 +26,9 @@ export const useNotesStore = create<NotesState>((set) => ({
     const res = await notesApi.addNote(content);
     set((state) => ({ notes: [res.data, ...state.notes] }));
     return res.data;
+  },
+  deleteNote: async (id: number) => {
+    await notesApi.deleteNote(id);
+    set((state) => ({ notes: state.notes.filter((n) => n.id !== id) }));
   },
 }));

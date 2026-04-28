@@ -21,6 +21,9 @@ export default {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          400: "hsl(152 100% 50%)",
+          500: "hsl(152 100% 40%)",
+          600: "hsl(152 100% 32%)",
         },
         card: {
           DEFAULT: "hsl(var(--card))",
@@ -29,6 +32,10 @@ export default {
         surface: {
           DEFAULT: "hsl(var(--surface))",
           raised: "hsl(var(--surface-raised))",
+          600: "rgba(255,255,255,0.10)",
+          700: "rgba(255,255,255,0.06)",
+          800: "rgba(255,255,255,0.04)",
+          900: "rgba(0,0,0,0.40)",
         },
         "accent-teal": "hsl(var(--accent-teal))",
         border: "hsl(var(--border))",
