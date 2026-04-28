@@ -12,6 +12,12 @@ export interface PersonalityProfile {
   agreeableness: number;
   neuroticism: number;
   summary: string;
+  coreValues?: string[];
+  cognitiveStyle?: string[];
+  energyProfile?: {
+    sources: string[];
+    drains: string[];
+  };
 }
 
 export interface Note {
@@ -36,7 +42,15 @@ export interface InsightResponse {
   summary: string;
 }
 
+export interface ReasoningFactor {
+  label: string;
+  score: number;
+  note: string;
+}
+
 export interface SimulationResponse {
   predicted_decision: string;
-  reasoning: string;
+  confidence: number;
+  reasoning: ReasoningFactor[];
+  alternatives: string[];
 }

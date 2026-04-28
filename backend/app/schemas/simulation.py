@@ -20,6 +20,17 @@ class SimulationRequest(BaseModel):
         return v
 
 
+from typing import List
+
+
+class ReasoningFactor(BaseModel):
+    label: str
+    score: int
+    note: str
+
+
 class SimulationResponse(BaseModel):
     predicted_decision: str
-    reasoning: str
+    confidence: int
+    reasoning: List[ReasoningFactor]
+    alternatives: List[str]

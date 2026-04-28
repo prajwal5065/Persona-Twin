@@ -12,9 +12,13 @@ export const AuthPage: React.FC = () => {
   };
 
   return (
-    <Hero showDefaultContent={false}>
-      <AuthForm onSuccess={handleAuthSuccess} />
-    </Hero>
+    <div className="min-h-screen bg-[#0A0A0A]">
+      <Hero showDefaultContent={false}>
+        <div className="w-full flex justify-center items-center py-12 md:py-20">
+          <AuthForm onSuccess={handleAuthSuccess} />
+        </div>
+      </Hero>
+    </div>
   );
 };
 
