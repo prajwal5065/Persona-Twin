@@ -18,6 +18,32 @@
     --destructive: 0 75% 55%;
     
     --radius: 0.75rem;
+
+    /* App-prefixed tokens for backward/forward compatibility with premium UI */
+    --app-bg: hsl(var(--background));
+    --app-text: hsl(var(--foreground));
+    --app-accent: hsl(var(--primary));
+    --app-accent-hover: hsl(152, 100%, 45%);
+    --app-accent-dim: rgba(0, 204, 102, 0.1);
+    --app-border: hsl(var(--border));
+    --app-border2: rgba(255, 255, 255, 0.08);
+    --app-surface: hsl(var(--surface));
+    --app-surface2: hsl(var(--surface-raised));
+    --app-muted: hsl(var(--muted-foreground));
+    --app-faint: rgba(255, 255, 255, 0.25);
+    --app-success: #10b981;
+    --app-danger: hsl(var(--destructive));
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -468px 0; }
+    100% { background-position: 468px 0; }
+  }
+  
+  .shimmer-effect {
+    background: linear-gradient(to right, var(--app-border) 8%, var(--app-surface-raised) 18%, var(--app-border) 33%);
+    background-size: 800px 104px;
+    animation: shimmer 2s infinite linear;
   }
 
   * {

@@ -100,10 +100,31 @@ export function Sidebar() {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col h-screen w-[240px] bg-black/60 backdrop-blur-xl border-r border-[#00CC6610] p-4 fixed left-0 top-0 z-50">
         {/* Logo */}
-        <div className="flex items-center gap-3 px-3 py-6 mb-6 group overflow-hidden">
-          <WolfIcon className="w-8 h-8 text-primary drop-shadow-[0_0_8px_rgba(0,204,102,0.4)] transition-transform duration-300 group-hover:scale-110" />
-          <h1 className="text-xl font-semibold tracking-[-0.03em] text-foreground leading-none">
-            Persona<span className="text-primary">Twin</span>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          height: '56px',
+          padding: '0 16px',
+          borderBottom: '1px solid var(--app-border)',
+          marginBottom: '24px'
+        }} className="group overflow-hidden">
+          <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="2" width="10" height="14" rx="2" stroke="var(--app-accent)" strokeWidth="1.5" fill="none"/>
+              <rect x="8" y="5" width="10" height="14" rx="2" stroke="var(--app-accent)" strokeWidth="1.5" fill="var(--app-bg)" fillOpacity="0.8"/>
+              <path d="M8 9h5.5a2 2 0 010 4H8" stroke="var(--app-accent)" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </div>
+          <h1 style={{
+            fontSize: '15px',
+            fontWeight: 600,
+            color: 'var(--app-text)',
+            letterSpacing: '-0.02em',
+            lineHeight: 1,
+            whiteSpace: 'nowrap'
+          }}>
+            PersonaTwin
           </h1>
         </div>
 

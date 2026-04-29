@@ -3,17 +3,18 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   MessageSquare, FileText, BarChart2, Zap,
-  ArrowRight, TrendingUp, Brain, Sparkles,
+  ArrowRight, TrendingUp, Brain, Sparkles, User,
 } from 'lucide-react';
 import { useAuthStore } from '../store/auth.store';
 import { useNotesStore } from '../store/notes.store';
 import { useChatStore } from '../store/chat.store';
 import { insightsApi } from '../api/insights.api';
 import type { InsightResponse } from '../types';
-import ProgressRing from '../components/ProgressRing';
+import { AppButton } from '../components/ui/AppButton';
+import { AppCard } from '../components/ui/AppCard';
 
 // Import background image
-import dashboardBg from '../assets/dashboard-bg.png';
+import dashboardBg from '../assets/dashboard-bg.jpg';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -25,14 +26,20 @@ function getGreeting() {
   return 'Good evening';
 }
 
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+function formatRelativeTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffMins < 1) return 'just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric'
+  });
 }
 
 /** OCEAN average → "profile completion %" */
@@ -46,10 +53,10 @@ function profileCompletion(profile: Record<string, number> | null): number {
 // ─── sub-components ──────────────────────────────────────────────────────────
 
 function StatCard({
-  icon: Icon, label, value, sub, to, color = 'text-accent-400', delay = 0,
+  icon: Icon, label, value, sub, to, color = 'text-accent-400', delay = 0, style,
 }: {
   icon: React.ElementType; label: string; value: string | number;
-  sub?: string; to: string; color?: string; delay?: number;
+  sub?: string; to: string; color?: string; delay?: number; style?: React.CSSProperties;
 }) {
   return (
     <motion.div
@@ -60,6 +67,7 @@ function StatCard({
       <Link
         to={to}
         className="backdrop-blur-md bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 p-5 rounded-2xl block group shadow-2xl"
+        style={style}
       >
         <div className="flex items-start justify-between mb-4">
           <div className="w-8 h-8 rounded-lg bg-black/40 flex items-center justify-center">
@@ -70,7 +78,12 @@ function StatCard({
             className="text-muted group-hover:text-white group-hover:translate-x-0.5 transition-all duration-200"
           />
         </div>
-        <div className="text-2xl font-bold text-white mb-0.5">{value}</div>
+        <div 
+          className="font-bold text-white mb-0.5"
+          style={{ fontSize: style?.fontSize || '24px' }}
+        >
+          {value}
+        </div>
         <div className="text-xs font-medium text-slate-300">{label}</div>
         {sub && <div className="text-[11px] text-slate-400/80 mt-0.5">{sub}</div>}
       </Link>
@@ -78,30 +91,6 @@ function StatCard({
   );
 }
 
-function RecentNote({ note }: { note: { id: number; content: string; created_at: string } }) {
-  // Notes have no title — use first line / first 60 chars as title
-  const firstLine = note.content.split('\n')[0].slice(0, 60);
-  const body = note.content.slice(firstLine.length).trim().slice(0, 80);
-  return (
-    <Link
-      to="/notes"
-      className="flex items-start gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors group"
-    >
-      <FileText size={13} className="text-muted mt-0.5 flex-shrink-0" />
-      <div className="min-w-0 flex-1">
-        <div className="text-xs font-medium text-slate-200 truncate group-hover:text-white transition-colors">
-          {firstLine}
-        </div>
-        {body && (
-          <div className="text-[11px] text-muted truncate mt-0.5">{body}…</div>
-        )}
-      </div>
-      <span className="text-[10px] text-muted flex-shrink-0 mt-0.5">
-        {timeAgo(note.created_at)}
-      </span>
-    </Link>
-  );
-}
 
 // Trend strings from InsightResponse.trends → chip display
 const TREND_COLORS = [
@@ -133,11 +122,25 @@ export function DashboardPage() {
   const { notes, fetchNotes } = useNotesStore();
   const messages = useChatStore((s) => s.messages);
   const [insights, setInsights] = useState<InsightResponse | null>(null);
+  const [insightsLoading, setInsightsLoading] = useState(true);
+  const [showSkeleton, setShowSkeleton] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => { fetchNotes(); }, [fetchNotes]);
   useEffect(() => {
-    insightsApi.getInsights().then((r) => setInsights(r.data)).catch(() => {});
+    insightsApi.getInsights()
+      .then((r) => {
+        setInsights(r.data);
+        setInsightsLoading(false);
+      })
+      .catch(() => {
+        setInsightsLoading(false);
+      });
+
+    const timer = setTimeout(() => {
+      setShowSkeleton(false);
+    }, 3000);
+    return () => clearTimeout(timer);
   }, []);
 
   const firstName = user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'there';
@@ -197,7 +200,41 @@ export function DashboardPage() {
           <StatCard icon={FileText} label="Memories"    value={memoryCount}  sub="thoughts stored"   to="/notes"    delay={0} />
           <StatCard icon={BarChart2} label="Insights"   value={trendCount}   sub="patterns found"    to="/insights" color="text-violet-300" delay={60} />
           <StatCard icon={Zap}       label="Simulations" value={0}            sub="decisions run"     to="/insights" color="text-amber-300"  delay={120} />
-          <StatCard icon={Brain}     label="Twin Profile" value={`${profilePct}%`} sub="complete"    to="/profile"  color="text-emerald-300" delay={180} />
+          {(() => {
+            const profileStatus = user?.personality_profile
+              ? 'Complete'
+              : memoryCount >= 10
+                ? 'Ready to analyze'
+                : `${memoryCount} / 10 memories`;
+            
+            const profileSub = user?.personality_profile
+              ? 'personality mapped'
+              : memoryCount >= 10
+                ? 'tap to run analysis'
+                : 'memories needed';
+
+            const statusColor = profileStatus === 'Complete' 
+              ? 'text-emerald-400' 
+              : profileStatus === 'Ready to analyze' 
+                ? 'text-primary' 
+                : 'text-white';
+
+            return (
+              <StatCard 
+                icon={Brain} 
+                label="Twin Profile" 
+                value={profileStatus} 
+                sub={profileSub} 
+                to="/profile" 
+                color="text-emerald-300" 
+                delay={180}
+                style={{ 
+                  cursor: profileSub === 'tap to run analysis' ? 'pointer' : undefined,
+                  fontSize: profileStatus.length > 6 ? '18px' : '28px'
+                }}
+              />
+            );
+          })()}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -225,12 +262,16 @@ export function DashboardPage() {
                   {lastTwinMsg ? (
                     <>
                       <p className="text-sm text-slate-200 leading-relaxed italic opacity-90">"{lastTwinMsg.content.slice(0, 220)}{lastTwinMsg.content.length > 220 ? '…' : ''}"</p>
-                      <Link
-                        to="/chat"
-                        className="inline-flex items-center gap-2 mt-5 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors uppercase tracking-widest"
-                      >
-                        Resume Sync <ArrowRight size={12} />
-                      </Link>
+                      <div className="mt-5">
+                        <AppButton 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => navigate('/chat')}
+                          style={{ paddingLeft: 0, color: 'var(--app-accent)' }}
+                        >
+                          Continue chat <ArrowRight size={13} className="ml-1" />
+                        </AppButton>
+                      </div>
                     </>
                   ) : (
                     <>
@@ -239,12 +280,16 @@ export function DashboardPage() {
                           ? "I'm ready to learn from you. Add some memories to begin the alignment process."
                           : `Alignment is at ${profilePct}%. I have indexed ${memoryCount} memories. Let's explore your data.`}
                       </p>
-                      <Link
-                        to="/chat"
-                        className="inline-flex items-center gap-2 mt-5 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors uppercase tracking-widest"
-                      >
-                        Initialize Chat <ArrowRight size={12} />
-                      </Link>
+                      <div className="mt-5">
+                        <AppButton 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => navigate('/chat')}
+                          style={{ paddingLeft: 0, color: 'var(--app-accent)' }}
+                        >
+                          Initialize Chat <ArrowRight size={13} className="ml-1" />
+                        </AppButton>
+                      </div>
                     </>
                   )}
                 </div>
@@ -279,8 +324,34 @@ export function DashboardPage() {
                   </button>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {recentNotes.map((note) => <RecentNote key={note.id} note={note} />)}
+                <div className="divide-y divide-white/5">
+                  {recentNotes.map((note, index) => (
+                    <div key={note.id} style={{
+                      padding: '12px 0',
+                      borderBottom: index < recentNotes.length - 1
+                        ? '1px solid var(--app-border)' : 'none'
+                    }}>
+                      <p style={{
+                        fontSize: '14px',
+                        color: 'var(--app-text)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        lineHeight: '1.5',
+                        margin: 0
+                      }}>
+                        {note.content}
+                      </p>
+                      <p style={{
+                        fontSize: '11px',
+                        color: 'var(--app-faint)',
+                        marginTop: '3px',
+                        fontFamily: 'monospace'
+                      }}>
+                        {formatRelativeTime(note.created_at)}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               )}
             </motion.div>
@@ -289,25 +360,56 @@ export function DashboardPage() {
           {/* Right panel */}
           <div className="space-y-6">
 
-            {/* Twin completion rings */}
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.2, ease: 'easeOut' }}
-              className="backdrop-blur-md bg-white/5 border border-white/10 p-6 rounded-3xl shadow-xl"
-            >
-              <h3 className="text-xs font-bold text-white mb-6 uppercase tracking-widest opacity-80">Alignment Progress</h3>
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex gap-4">
-                  <ProgressRing value={profilePct}  size={56} strokeWidth={4} color="#3b82f6" label="Core"  />
-                  <ProgressRing value={patternsPct} size={56} strokeWidth={4} color="#8b5cf6" label="Logic" />
-                  <ProgressRing value={valuesPct}   size={56} strokeWidth={4} color="#10b981" label="Ethics"   />
+            {!user?.personality_profile ? (
+              <AppCard 
+                padding="20px" 
+                onClick={() => navigate('/profile')} 
+                lift
+                className="shadow-xl"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <User size={16} className="text-emerald-400" />
+                  <h3 className="text-[14px] font-semibold text-white">Complete Your Profile</h3>
                 </div>
-                <Link to="/profile" className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors">
-                  <ArrowRight size={14} className="text-white" />
-                </Link>
-              </div>
-            </motion.div>
+                <p className="text-[12px] text-slate-400 leading-relaxed">
+                  Run a personality analysis to unlock alignment tracking.
+                </p>
+                <div className="mt-3">
+                  <AppButton variant="primary" size="sm">Analyze Now</AppButton>
+                </div>
+              </AppCard>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2, ease: 'easeOut' }}
+                className="backdrop-blur-md bg-white/5 border border-white/10 p-6 rounded-3xl shadow-xl"
+              >
+                <h3 className="text-xs font-bold text-white mb-6 uppercase tracking-widest opacity-80">Alignment Progress</h3>
+                <div className="space-y-4">
+                  {[
+                    { label: 'Core Memory', val: (profile?.openness ?? 0) * 100 },
+                    { label: 'Reasoning', val: (profile?.conscientiousness ?? 0) * 100 },
+                    { label: 'Ethics Profile', val: (profile?.agreeableness ?? 0) * 100 },
+                  ].map((row, i) => (
+                    <div key={i} className="flex flex-col gap-1.5">
+                      <div className="flex justify-between items-end">
+                        <span className="text-[13px] text-slate-400">{row.label}</span>
+                        <span className="text-[12px] font-mono text-slate-500">{Math.round(row.val)}%</span>
+                      </div>
+                      <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${row.val}%` }}
+                          transition={{ duration: 0.8, ease: 'easeOut', delay: 0.4 + (i * 0.1) }}
+                          className="h-full bg-emerald-500"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
 
             {/* Latest insights */}
             <motion.div
@@ -322,10 +424,18 @@ export function DashboardPage() {
                   <h3 className="text-xs font-bold text-white uppercase tracking-widest opacity-80">Cognitive Insights</h3>
                 </div>
               </div>
-              {recentTrends.length === 0 ? (
-                <p className="text-xs text-slate-500 font-medium py-2">
-                  Generating insights from data...
-                </p>
+              {insightsLoading && showSkeleton ? (
+                <div className="space-y-[10px] py-2">
+                  <div className="shimmer-effect h-[12px] w-full rounded-[4px]" />
+                  <div className="shimmer-effect h-[12px] w-[80%] rounded-[4px]" />
+                  <div className="shimmer-effect h-[12px] w-[60%] rounded-[4px]" />
+                </div>
+              ) : recentTrends.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-4 text-center">
+                  <Sparkles size={20} className="text-slate-500 opacity-40" />
+                  <p className="text-[13px] text-slate-400 mt-2 font-medium">Add more memories to generate insights.</p>
+                  <p className="text-[11px] text-slate-500 mt-1">Insights appear after 5+ memories.</p>
+                </div>
               ) : (
                 <div className="space-y-3">
                   {recentTrends.map((trend, i) => (
