@@ -9,7 +9,8 @@ psycopg2-binary
 asyncpg
 python-multipart
 python-jose[cryptography]
-passlib[bcrypt]
+bcrypt==4.0.1
+passlib[bcrypt]==1.7.4
 email-validator
 faiss-cpu
 numpy

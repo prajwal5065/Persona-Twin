@@ -41,7 +41,12 @@ ALGORITHM: str = "HS256"
 
 def _hash_password(plain: str) -> str:
     """Return the bcrypt hash of *plain*."""
-    return pwd_context.hash(plain)
+    if len(plain.encode("utf-8")) > 72:
+        raise HTTPException(
+            status_code=400,
+            detail="Password too long (max 72 bytes)"
+        )
+    return pwd_context.hash(plain[:72])
 
 
 def _verify_password(plain: str, hashed: str) -> bool:
