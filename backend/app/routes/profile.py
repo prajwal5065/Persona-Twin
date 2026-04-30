@@ -15,10 +15,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.db.database import get_async_db
-from backend.app.dependencies.auth import get_current_user
-from backend.app.models.user import User as UserModel
-from backend.app.services.personality import PersonalityService
+from app.db.database import get_async_db
+from app.dependencies.auth import get_current_user
+from app.models.user import User as UserModel
+from app.services.personality import PersonalityService
 
 router = APIRouter(prefix="/profile", tags=["profile"])
 logger = logging.getLogger(__name__)

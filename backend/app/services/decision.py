@@ -2,7 +2,7 @@ import json
 import re
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
-from backend.app.models.note import Note
+from app.models.note import Note
 from .retrieval import RetrievalService
 from .llm import LLMService
 from .style_extractor import StyleExtractorService

@@ -8,9 +8,9 @@ root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 if root not in sys.path:
     sys.path.insert(0, root)
 
-from backend.app.services.embedding import EmbeddingService
-from backend.app.services.vector_db import VectorDBService
-from backend.app.services.retrieval import RetrievalService
+from app.services.embedding import EmbeddingService
+from app.services.vector_db import VectorDBService
+from app.services.retrieval import RetrievalService
 
 def test_integration():
     """
@@ -33,7 +33,7 @@ def test_integration():
     
     # Pre-populate the cache with a VectorDBService pointing to our temp dir
     test_vdb = VectorDBService(user_id=user_id, index_dir=data_dir)
-    with patch("backend.app.services.vector_db._cache", {user_id: test_vdb}):
+    with patch("app.services.vector_db._cache", {user_id: test_vdb}):
         retrieval_service = RetrievalService(embedding_service=embedding_service)
         
         # 1. Test Embedding Generation

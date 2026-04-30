@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
 from sqlalchemy import select
-from backend.app.db.database import AsyncSessionLocal
-from backend.app.models.note import Note
-from backend.app.models.user import User
-from backend.app.services.llm import LLMService
+from app.db.database import AsyncSessionLocal
+from app.models.note import Note
+from app.models.user import User
+from app.services.llm import LLMService
 
 class DigestService:
     @staticmethod

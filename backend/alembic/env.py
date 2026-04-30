@@ -22,9 +22,9 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from backend.config import get_settings
-from backend.app.db.database import Base
-from backend.app.models import user, note, digest
+from config import get_settings
+from app.db.database import Base
+from app.models import user, note, digest
 
 settings = get_settings()
 _raw_url = settings.DATABASE_URL

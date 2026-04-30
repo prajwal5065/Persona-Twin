@@ -17,12 +17,12 @@ from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.db.database import get_async_db
-from backend.app.models.user import User
-from backend.app.schemas.auth import TokenResponse, UserCreate
-from backend.app.schemas.user import User as UserSchema
-from backend.app.dependencies.auth import get_current_user
-from backend.config import get_settings
+from app.db.database import get_async_db
+from app.models.user import User
+from app.schemas.auth import TokenResponse, UserCreate
+from app.schemas.user import User as UserSchema
+from app.dependencies.auth import get_current_user
+from config import get_settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger(__name__)

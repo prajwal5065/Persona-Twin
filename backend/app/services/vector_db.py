@@ -21,7 +21,7 @@ from typing import Dict, List, Any
 
 import numpy as np
 
-from backend.config import get_settings
+from config import get_settings
 
 logger = logging.getLogger(__name__)
 

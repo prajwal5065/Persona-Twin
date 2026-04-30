@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
-from backend.app.db.database import get_async_db
-from backend.app.models.digest import Digest
-from backend.app.schemas.digest import DigestResponse
-from backend.app.dependencies.auth import get_current_user
-from backend.app.models.user import User
+from app.db.database import get_async_db
+from app.models.digest import Digest
+from app.schemas.digest import DigestResponse
+from app.dependencies.auth import get_current_user
+from app.models.user import User
 
 router = APIRouter(prefix="/digest", tags=["Digest"])
 

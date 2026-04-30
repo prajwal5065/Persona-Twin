@@ -14,8 +14,8 @@ from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from backend.app.models.note import Note
-from backend.app.services.retrieval import RetrievalService
+from app.models.note import Note
+from app.services.retrieval import RetrievalService
 
 logger = logging.getLogger(__name__)
 

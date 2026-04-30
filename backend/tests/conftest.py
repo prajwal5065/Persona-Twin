@@ -8,10 +8,10 @@ from unittest.mock import MagicMock
 from jose import jwt
 from datetime import datetime, timedelta
 
-from backend.app.main import app
-from backend.app.db.database import Base, get_async_db
-from backend.config import get_settings
-from backend.app.services.llm import LLMService
+from app.main import app
+from app.db.database import Base, get_async_db
+from config import get_settings
+from app.services.llm import LLMService
 
 settings = get_settings()
 
@@ -68,7 +68,7 @@ def mock_llm_service():
 
 @pytest_asyncio.fixture()
 async def test_user(db_session):
-    from backend.app.models.user import User
+    from app.models.user import User
     from passlib.context import CryptContext
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     hashed_password = pwd_context.hash("testpassword123")
