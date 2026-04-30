@@ -1,5 +1,5 @@
 import google.generativeai as genai
-from backend.config import get_settings
+from config import get_settings
 import structlog
 import time
 

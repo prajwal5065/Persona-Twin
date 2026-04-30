@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
-from backend.app.models.note import Note
+from app.models.note import Note
 from .llm import LLMService
 from collections import Counter
 from datetime import datetime

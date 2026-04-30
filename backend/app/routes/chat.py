@@ -15,12 +15,12 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.db.database import get_async_db
-from backend.app.schemas.chat import ChatRequest, ChatResponse
-from backend.app.services.rag import RAGService
-from backend.app.rate_limit import limiter
-from backend.app.dependencies.auth import get_current_user
-from backend.app.models.user import User
+from app.db.database import get_async_db
+from app.schemas.chat import ChatRequest, ChatResponse
+from app.services.rag import RAGService
+from app.rate_limit import limiter
+from app.dependencies.auth import get_current_user
+from app.models.user import User
 
 router = APIRouter(tags=["chat"])
 logger = logging.getLogger(__name__)

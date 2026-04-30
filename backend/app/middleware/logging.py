@@ -3,7 +3,7 @@ import uuid
 import structlog
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-from backend.config import get_settings
+from config import get_settings
 from jose import jwt
 
 logger = structlog.get_logger(__name__)

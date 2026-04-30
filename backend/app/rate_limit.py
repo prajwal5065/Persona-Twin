@@ -2,7 +2,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from fastapi import Request
 from jose import jwt
-from backend.config import get_settings
+from config import get_settings
 
 def get_user_id_for_limiter(request: Request) -> str:
     # Try to get from Authorization header

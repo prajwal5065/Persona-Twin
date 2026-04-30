@@ -14,9 +14,9 @@ from jose import JWTError, jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.db.database import get_async_db
-from backend.app.models.user import User
-from backend.config import get_settings
+from app.db.database import get_async_db
+from app.models.user import User
+from config import get_settings
 
 logger = logging.getLogger(__name__)
 

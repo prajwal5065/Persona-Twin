@@ -4,10 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 import logging
 
-from backend.app.db.database import get_async_db
-from backend.app.models.user import User as UserModel
-from backend.app.schemas.user import User as UserSchema
-from backend.app.dependencies.auth import get_current_user
+from app.db.database import get_async_db
+from app.models.user import User as UserModel
+from app.schemas.user import User as UserSchema
+from app.dependencies.auth import get_current_user
 
 router = APIRouter(tags=["users"])
 logger = logging.getLogger(__name__)

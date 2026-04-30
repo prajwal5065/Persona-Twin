@@ -22,11 +22,11 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.models.note import Note as NoteModel
-from backend.app.models.user import User as UserModel
+from app.models.note import Note as NoteModel
+from app.models.user import User as UserModel
 
 if TYPE_CHECKING:
-    from backend.app.services.llm import LLMService
+    from app.services.llm import LLMService
 
 logger = logging.getLogger(__name__)
 

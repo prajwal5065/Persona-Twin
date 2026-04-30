@@ -15,7 +15,7 @@ import logging
 from typing import List
 
 import google.generativeai as genai
-from backend.config import get_settings
+from config import get_settings
 
 logger = logging.getLogger(__name__)
 

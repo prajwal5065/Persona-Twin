@@ -17,12 +17,12 @@ from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.db.database import get_async_db
-from backend.app.dependencies.auth import get_current_user
-from backend.app.models.note import Note as NoteModel
-from backend.app.models.user import User as UserModel
-from backend.app.schemas.note import Note as NoteSchema, NoteCreate
-from backend.app.rate_limit import limiter
+from app.db.database import get_async_db
+from app.dependencies.auth import get_current_user
+from app.models.note import Note as NoteModel
+from app.models.user import User as UserModel
+from app.schemas.note import Note as NoteSchema, NoteCreate
+from app.rate_limit import limiter
 
 # ── Voice endpoint constants ───────────────────────────────────────────────────
 _ALLOWED_AUDIO_TYPES: frozenset[str] = frozenset({
@@ -72,7 +72,7 @@ async def create_note(
 
     # --- FAISS indexing (non-critical, lazy import keeps startup clean) ---
     try:
-        from backend.app.services.retrieval import RetrievalService
+        from app.services.retrieval import RetrievalService
 
         retrieval_service = RetrievalService()
         retrieval_service.add_note_to_index(
@@ -155,7 +155,7 @@ async def reindex_notes(
     contents = [n.content for n in notes]
 
     try:
-        from backend.app.services.retrieval import RetrievalService
+        from app.services.retrieval import RetrievalService
 
         retrieval_service = RetrievalService()
         retrieval_service.rebuild_index(
@@ -228,7 +228,7 @@ async def voice_to_note(
 
     # 3. Transcribe via Whisper (lazy import — keeps startup fast) ────────────
     try:
-        from backend.app.services.voice import VoiceService
+        from app.services.voice import VoiceService
 
         voice_service = VoiceService()
         transcription: str = voice_service.transcribe(
@@ -265,7 +265,7 @@ async def voice_to_note(
 
     # 5. Non-critical: index the new note in FAISS ────────────────────────────
     try:
-        from backend.app.services.retrieval import RetrievalService
+        from app.services.retrieval import RetrievalService
 
         retrieval_service = RetrievalService()
         retrieval_service.add_note_to_index(

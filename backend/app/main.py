@@ -17,16 +17,16 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.app.db.database import async_engine, Base
-from backend.app.routes import note, chat, insights, simulation, user, profile, digest
-from backend.app.routes import auth
-from backend.app.models import user as user_model, note as note_model, digest as digest_model  # noqa: F401 — ensure models are registered
-from backend.app.services.llm import LLMService
-from backend.config import get_settings
-from backend.app.tasks.weekly_digest import setup_scheduler
-from backend.app.rate_limit import limiter
-from backend.app.logger import setup_logging
-from backend.app.middleware.logging import RequestLoggingMiddleware
+from app.db.database import async_engine, Base
+from app.routes import note, chat, insights, simulation, user, profile, digest
+from app.routes import auth
+from app.models import user as user_model, note as note_model, digest as digest_model  # noqa: F401 — ensure models are registered
+from app.services.llm import LLMService
+from config import get_settings
+from app.tasks.weekly_digest import setup_scheduler
+from app.rate_limit import limiter
+from app.logger import setup_logging
+from app.middleware.logging import RequestLoggingMiddleware
 from slowapi.errors import RateLimitExceeded
 from fastapi import Request
 from fastapi.responses import JSONResponse

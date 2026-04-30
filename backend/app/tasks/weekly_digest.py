@@ -2,10 +2,10 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from datetime import date
 from sqlalchemy import select
-from backend.app.db.database import AsyncSessionLocal
-from backend.app.models.user import User
-from backend.app.models.digest import Digest
-from backend.app.services.digest import DigestService
+from app.db.database import AsyncSessionLocal
+from app.models.user import User
+from app.models.digest import Digest
+from app.services.digest import DigestService
 import logging
 
 logger = logging.getLogger(__name__)
