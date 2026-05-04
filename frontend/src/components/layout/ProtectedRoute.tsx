@@ -14,7 +14,7 @@ export function ProtectedRoute() {
   }, [token, user, fetchMe]);
 
   if (!token) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   if (loading && !user) {
