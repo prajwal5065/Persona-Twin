@@ -21,7 +21,7 @@ export const AuthPage: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    
+
     try {
       if (isLogin) {
         const res = await authApi.login({ username: email, password });
@@ -40,15 +40,27 @@ export const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-6 relative overflow-hidden">
-      {/* Background Orbs */}
-      <div className="bg-orb orb-1" />
-      <div className="bg-orb orb-2" />
-      
-      <motion.div 
+    <div className="min-h-screen flex items-center justify-center bg-black p-6 relative overflow-hidden">
+      {/* Cinematic Video Background */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        className="absolute inset-0 w-full h-full object-cover z-0"
+      >
+        <source src="https://res.cloudinary.com/dfonotyfb/video/upload/v1775585556/dds3_1_rqhg7x.mp4" type="video/mp4" />
+        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
+      </video>
+
+      {/* Subtle Dark Overlay — keep video visible */}
+      <div className="absolute inset-0 bg-black/30 z-10 pointer-events-none" />
+
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full glass-strong p-10 rounded-[40px] space-y-10 relative z-10 border-[#00CC6610]"
+        className="max-w-md w-full glass-strong p-10 rounded-[40px] space-y-10 relative z-20 border border-white/10"
       >
         <div className="text-center space-y-4">
           <div className={`w-16 h-16 ${isLogin ? 'bg-primary/10 border-primary/20 shadow-[0_0_40px_rgba(0,204,102,0.1)]' : 'bg-accent-teal/10 border-accent-teal/20 shadow-[0_0_40px_rgba(0,179,179,0.1)]'} rounded-3xl flex items-center justify-center mx-auto mb-6 border`}>
@@ -61,7 +73,7 @@ export const AuthPage: React.FC = () => {
               <>Neural <span className="gradient-text">Onboarding</span></>
             )}
           </h1>
-          <p className="text-muted-foreground text-[14px]">
+          <p className="text-black text-[14px]">
             {isLogin ? 'Re-establish synchronization with your digital core.' : 'Initialize your digital consciousness stream.'}
           </p>
         </div>
@@ -69,7 +81,7 @@ export const AuthPage: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           {!isLogin && (
             <div className="space-y-2">
-              <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Entity Identifier</label>
+              <label className="text-[11px] font-bold uppercase tracking-widest text-black ml-1">Entity Identifier</label>
               <input
                 type="text"
                 value={fullName}
@@ -81,7 +93,7 @@ export const AuthPage: React.FC = () => {
             </div>
           )}
           <div className="space-y-2">
-            <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Coordinate Email</label>
+            <label className="text-[11px] font-bold uppercase tracking-widest text-black ml-1">Coordinate Email</label>
             <input
               type="email"
               value={email}
@@ -92,7 +104,7 @@ export const AuthPage: React.FC = () => {
             />
           </div>
           <div className="space-y-2">
-            <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Access Protocol</label>
+            <label className="text-[11px] font-bold uppercase tracking-widest text-black ml-1">Access Protocol</label>
             <input
               type="password"
               value={password}
