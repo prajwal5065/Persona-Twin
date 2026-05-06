@@ -47,7 +47,7 @@ You write memories → AI indexes them → You chat with your twin
 
 | Dashboard | Chat |
 |-----------|------|
-| ![Dashboard](C:\Users\admin\Desktop\MY_PROJECTS\prsonatwin\Persona-Twin\og-chat.png) | ![Chat](https://persona-twin-five.vercel.app/og-chat.png) |
+| ![Dashboard](og-chat.png) | ![Chat](https://persona-twin-five.vercel.app/og-chat.png) |
 
 | Memories | Insights |
 |----------|----------|
