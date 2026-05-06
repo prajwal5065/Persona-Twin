@@ -51,7 +51,7 @@ You write memories → AI indexes them → You chat with your twin
 
 | Memories | Insights |
 |----------|----------|
-| ![Memories](https://persona-twin-five.vercel.app/og-notes.png) | ![Insights](https://persona-twin-five.vercel.app/og-insights.png) |
+| ![Memories](og-notes.png) | ![Insights](og-insights.png) |
 
 > Live at **[persona-twin-five.vercel.app](https://persona-twin-five.vercel.app)**
 
