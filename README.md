@@ -47,8 +47,7 @@ You write memories → AI indexes them → You chat with your twin
 
 | Dashboard | Chat |
 |-----------|------|
-| ![Dashboard](og-chat.png) | ![Chat](
-og-chat.png) |
+| ![Dashboard](og-chat.png) | ![Chat](og-chat.png) |
 
 | Memories | Insights |
 |----------|----------|
