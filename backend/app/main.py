@@ -76,9 +76,23 @@ settings = get_settings()
 
 app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)
 
+# Build allowed origins dynamically
+origins = list(settings.ALLOWED_ORIGINS)
+fallback_origins = [
+    "https://persona-twin-five.vercel.app",
+    "https://persona-twin.vercel.app",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+]
+for origin in fallback_origins:
+    if origin not in origins:
+        origins.append(origin)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://persona-twin-five.vercel.app", "http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
