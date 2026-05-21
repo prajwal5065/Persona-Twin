@@ -14,7 +14,7 @@ import { AppButton } from '../components/ui/AppButton';
 import { AppCard } from '../components/ui/AppCard';
 
 // Import background image
-import dashboardBg from '../assets/dashboard-bg.jpg';
+import dashboardBg from '../assets/dashboard-bg.webp';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -123,7 +123,6 @@ export function DashboardPage() {
   const messages = useChatStore((s) => s.messages);
   const [insights, setInsights] = useState<InsightResponse | null>(null);
   const [insightsLoading, setInsightsLoading] = useState(true);
-  const [showSkeleton, setShowSkeleton] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => { fetchNotes(); }, [fetchNotes]);
@@ -136,11 +135,6 @@ export function DashboardPage() {
       .catch(() => {
         setInsightsLoading(false);
       });
-
-    const timer = setTimeout(() => {
-      setShowSkeleton(false);
-    }, 3000);
-    return () => clearTimeout(timer);
   }, []);
 
   const firstName = user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'there';
@@ -424,7 +418,7 @@ export function DashboardPage() {
                   <h3 className="text-xs font-bold text-white uppercase tracking-widest opacity-80">Cognitive Insights</h3>
                 </div>
               </div>
-              {insightsLoading && showSkeleton ? (
+              {insightsLoading ? (
                 <div className="space-y-[10px] py-2">
                   <div className="shimmer-effect h-[12px] w-full rounded-[4px]" />
                   <div className="shimmer-effect h-[12px] w-[80%] rounded-[4px]" />
