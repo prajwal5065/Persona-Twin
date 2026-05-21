@@ -5,7 +5,10 @@ import { useEffect } from 'react';
 import { CustomSpinner } from '../ui/CustomSpinner';
 
 export function ProtectedRoute() {
-  const { token, user, fetchMe, loading } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
+  const user = useAuthStore((s) => s.user);
+  const fetchMe = useAuthStore((s) => s.fetchMe);
+  const loading = useAuthStore((s) => s.loading);
 
   useEffect(() => {
     if (token && !user) {

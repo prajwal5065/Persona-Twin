@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
+import wolfHero from '../../assets/wolf_hero.webp';
 
 interface HeroProps {
   children?: React.ReactNode;
@@ -16,6 +17,7 @@ export const Hero: React.FC<HeroProps> = ({ children, showDefaultContent = true 
         loop 
         muted 
         playsInline 
+        poster={wolfHero}
         className="absolute inset-0 w-full h-full object-cover z-0 opacity-60"
       >
         <source src="https://res.cloudinary.com/dfonotyfb/video/upload/v1775585556/dds3_1_rqhg7x.mp4" type="video/mp4" />
