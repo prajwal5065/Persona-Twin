@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   TrendingUp, Brain, Lightbulb, AlertTriangle, 
@@ -59,7 +59,7 @@ interface Insight {
 
 // ─── components ──────────────────────────────────────────────────────────────
 
-const ConfidenceBar = memo(function ConfidenceBar({ value }: { value: number }) {
+function ConfidenceBar({ value }: { value: number }) {
   return (
     <div className="flex items-center gap-2">
       <div className="flex-1 h-1 bg-surface-700 rounded-full overflow-hidden">
@@ -73,9 +73,9 @@ const ConfidenceBar = memo(function ConfidenceBar({ value }: { value: number }) 
       <span className="text-[11px] text-accent-400 font-mono font-medium w-8">{value}%</span>
     </div>
   );
-});
+}
 
-const InsightCard = memo(function InsightCard({ insight, index }: { insight: Insight; index: number }) {
+function InsightCard({ insight, index }: { insight: Insight; index: number }) {
   const [expanded, setExpanded] = useState(false);
   const config = insightTypeConfig[insight.type] || insightTypeConfig.pattern;
   const Icon = typeIcons[insight.type] || Lightbulb;
@@ -129,9 +129,9 @@ const InsightCard = memo(function InsightCard({ insight, index }: { insight: Ins
       </div>
     </motion.div>
   );
-});
+}
 
-const ActivityChart = memo(function ActivityChart({ distribution }: { distribution: Record<string, number> }) {
+function ActivityChart({ distribution }: { distribution: Record<string, number> }) {
   const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   // Map periods to days for visualization if actual daily data isn't available
   const periods = ['morning', 'afternoon', 'evening', 'night'];
@@ -160,7 +160,7 @@ const ActivityChart = memo(function ActivityChart({ distribution }: { distributi
       </div>
     </div>
   );
-});
+}
 
 // ─── main page ───────────────────────────────────────────────────────────────
 
