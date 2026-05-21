@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -52,7 +52,7 @@ function profileCompletion(profile: Record<string, number> | null): number {
 
 // ─── sub-components ──────────────────────────────────────────────────────────
 
-function StatCard({
+const StatCard = memo(function StatCard({
   icon: Icon, label, value, sub, to, color = 'text-accent-400', delay = 0, style,
 }: {
   icon: React.ElementType; label: string; value: string | number;
@@ -89,7 +89,7 @@ function StatCard({
       </Link>
     </motion.div>
   );
-}
+});
 
 
 // Trend strings from InsightResponse.trends → chip display
@@ -99,7 +99,7 @@ const TREND_COLORS = [
   { border: 'border-emerald-500/30',bg: 'bg-emerald-500/10',color: 'text-emerald-300',label: 'Growth' },
 ];
 
-function InsightChip({ text, index }: { text: string; index: number }) {
+const InsightChip = memo(function InsightChip({ text, index }: { text: string; index: number }) {
   const cfg = TREND_COLORS[index % TREND_COLORS.length];
   return (
     <Link
@@ -113,13 +113,14 @@ function InsightChip({ text, index }: { text: string; index: number }) {
       </div>
     </Link>
   );
-}
+});
 
 // ─── main component ──────────────────────────────────────────────────────────
 
 export function DashboardPage() {
   const user = useAuthStore((s) => s.user);
-  const { notes, fetchNotes } = useNotesStore();
+  const notes = useNotesStore((s) => s.notes);
+  const fetchNotes = useNotesStore((s) => s.fetchNotes);
   const messages = useChatStore((s) => s.messages);
   const [insights, setInsights] = useState<InsightResponse | null>(null);
   const [insightsLoading, setInsightsLoading] = useState(true);
@@ -164,6 +165,8 @@ export function DashboardPage() {
           src={dashboardBg} 
           alt="Dashboard Background" 
           className="w-full h-full object-cover scale-105" // Slight scale for a bit of room
+          fetchPriority="high"
+          loading="eager"
         />
         {/* Deep Overlay for content readability */}
         <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/60 to-black/40 backdrop-blur-[2px]" />

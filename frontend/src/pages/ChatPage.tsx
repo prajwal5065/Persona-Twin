@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Sparkles, Info } from 'lucide-react';
 import { useChatStore } from '../store/chat.store';
@@ -15,7 +15,7 @@ const SUGGESTIONS = [
 ];
 
 // ─── single message bubble ────────────────────────────────────────────────────
-function ChatMessage({
+const ChatMessage = memo(function ChatMessage({
   message,
   isNew,
   userInitials,
@@ -56,11 +56,14 @@ function ChatMessage({
       </div>
     </motion.div>
   );
-}
+});
 
 // ─── main page ────────────────────────────────────────────────────────────────
 export function ChatPage() {
-  const { messages, thinking, loading, sendMessage } = useChatStore();
+  const messages = useChatStore((s) => s.messages);
+  const thinking = useChatStore((s) => s.thinking);
+  const loading = useChatStore((s) => s.loading);
+  const sendMessage = useChatStore((s) => s.sendMessage);
   const user = useAuthStore((s) => s.user);
   const notes = useNotesStore((s) => s.notes);
 

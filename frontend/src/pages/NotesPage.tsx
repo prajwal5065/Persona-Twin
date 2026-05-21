@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, FileText, Sparkles, Search, X, Trash2, Calendar, Tag as TagIcon } from 'lucide-react';
 import { useNotesStore } from '../store/notes.store';
@@ -65,7 +65,7 @@ function timeAgo(dateStr: string): string {
 
 // ─── sub-components ──────────────────────────────────────────────────────────
 
-function NoteCard({ note, onDelete }: { note: any; onDelete: (id: number) => void }) {
+const NoteCard = memo(function NoteCard({ note, onDelete }: { note: any; onDelete: (id: number) => void }) {
   const [hovered, setHovered] = useState(false);
   const { title, tags, content } = note;
   
@@ -127,7 +127,7 @@ function NoteCard({ note, onDelete }: { note: any; onDelete: (id: number) => voi
       </div>
     </motion.div>
   );
-}
+});
 
 function AddNoteModal({ onClose, onAdd }: { onClose: () => void; onAdd: (content: string) => void }) {
   const [title, setTitle] = useState('');
@@ -220,7 +220,10 @@ function AddNoteModal({ onClose, onAdd }: { onClose: () => void; onAdd: (content
 // ─── main component ──────────────────────────────────────────────────────────
 
 export function NotesPage() {
-  const { notes, addNote, deleteNote, fetchNotes } = useNotesStore();
+  const notes = useNotesStore((s) => s.notes);
+  const addNote = useNotesStore((s) => s.addNote);
+  const deleteNote = useNotesStore((s) => s.deleteNote);
+  const fetchNotes = useNotesStore((s) => s.fetchNotes);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [activeTag, setActiveTag] = useState<string | null>(null);
