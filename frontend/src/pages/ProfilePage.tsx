@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Edit3, Sparkles, Battery, BatteryLow, RefreshCw, User2 } from 'lucide-react';
 import { useAuthStore } from '../store/auth.store';
@@ -20,7 +20,7 @@ const OCEAN_CONFIG = [
 
 // ─── sub-components ──────────────────────────────────────────────────────────
 
-const OceanBar = memo(function OceanBar({ config, value, index }: { config: any; value: number; index: number }) {
+function OceanBar({ config, value, index }: { config: any; value: number; index: number }) {
   const [animated, setAnimated] = useState(false);
 
   useEffect(() => {
@@ -57,9 +57,9 @@ const OceanBar = memo(function OceanBar({ config, value, index }: { config: any;
       </p>
     </div>
   );
-});
+}
 
-const TagPill = memo(function TagPill({ text, variant = 'default' }: { text: string; variant?: 'default' | 'accent' | 'green' | 'red' }) {
+function TagPill({ text, variant = 'default' }: { text: string; variant?: 'default' | 'accent' | 'green' | 'red' }) {
   const variants = {
     default: 'bg-surface-700 text-slate-300 border-surface-600',
     accent: 'bg-accent-500/10 text-accent-400 border-accent-500/20',
@@ -69,14 +69,13 @@ const TagPill = memo(function TagPill({ text, variant = 'default' }: { text: str
   return (
     <span className={`badge border text-[11px] py-1 ${variants[variant]}`}>{text}</span>
   );
-});
+}
 
 // ─── main component ──────────────────────────────────────────────────────────
 
 export function ProfilePage() {
   const user = useAuthStore((state) => state.user);
-  const notes = useNotesStore((s) => s.notes);
-  const fetchNotes = useNotesStore((s) => s.fetchNotes);
+  const { notes, fetchNotes } = useNotesStore();
   const [profile, setProfile] = useState<PersonalityProfile | null>(user?.personality_profile || null);
   const [loading, setLoading] = useState(false);
 

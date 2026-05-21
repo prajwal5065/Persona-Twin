@@ -1,5 +1,4 @@
 import { Link, useLocation } from 'react-router-dom';
-import { memo } from 'react';
 import { Home, MessageSquare, StickyNote, BarChart2, User, LogOut, Brain, Zap } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import { useNotesStore } from '../../store/notes.store';
@@ -38,7 +37,7 @@ function Badge({ count }: { count: number }) {
 }
 
 /** Twin status pill — shows learning state based on memory count */
-const TwinStatus = memo(function TwinStatus({ memoryCount, isThinking }: { memoryCount: number; isThinking: boolean }) {
+function TwinStatus({ memoryCount, isThinking }: { memoryCount: number; isThinking: boolean }) {
   const status = isThinking
     ? { label: 'Thinking',  color: '#f59e0b', pulse: true }
     : memoryCount === 0
@@ -78,7 +77,7 @@ const TwinStatus = memo(function TwinStatus({ memoryCount, isThinking }: { memor
       `}</style>
     </div>
   );
-});
+}
 
 export function Sidebar() {
   const location = useLocation();
