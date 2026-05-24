@@ -4,7 +4,6 @@ import { useAuthStore } from '../../store/auth.store';
 import { useNotesStore } from '../../store/notes.store';
 import { useChatStore } from '../../store/chat.store';
 import { cn } from '../../lib/utils';
-import { WolfIcon } from '../ui/WolfIcon';
 
 const navItems = [
   { id: 'dashboard',  label: 'Dashboard',  icon: Home,          path: '/dashboard' },
@@ -15,17 +14,18 @@ const navItems = [
   { id: 'profile',    label: 'Profile',    icon: User,           path: '/profile' },
 ];
 
-/** Small dot-badge for nav items */
+/** Orange badge counter */
 function Badge({ count }: { count: number }) {
   if (!count) return null;
   return (
     <span style={{
       marginLeft: 'auto',
-      fontSize: '10px', fontWeight: 600,
-      background: 'var(--app-accent)',
+      fontSize: '10px',
+      fontWeight: 600,
+      background: 'var(--primary)',
       color: '#fff',
-      borderRadius: '9px',
-      padding: '1px 6px',
+      borderRadius: 'var(--radius-full)',
+      padding: '1px 7px',
       lineHeight: '16px',
       minWidth: '18px',
       textAlign: 'center',
@@ -36,45 +36,38 @@ function Badge({ count }: { count: number }) {
   );
 }
 
-/** Twin status pill — shows learning state based on memory count */
+/** Twin status widget */
 function TwinStatus({ memoryCount, isThinking }: { memoryCount: number; isThinking: boolean }) {
   const status = isThinking
-    ? { label: 'Thinking',  color: '#f59e0b', pulse: true }
+    ? { label: 'Thinking',  color: 'var(--primary)' }
     : memoryCount === 0
-      ? { label: 'Idle',     color: 'var(--app-faint)', pulse: false }
+      ? { label: 'Idle',     color: 'var(--muted-text)' }
       : memoryCount < 5
-        ? { label: 'Learning',color: '#3b82f6', pulse: true }
-        : { label: 'Active',  color: '#10b981', pulse: false };
+        ? { label: 'Learning', color: '#3b82f6' }
+        : { label: 'Active',   color: '#10b981' };
 
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: '8px',
+      display: 'flex', alignItems: 'center', gap: 8,
       padding: '10px 12px',
-      background: 'rgba(255,255,255,0.025)',
-      borderRadius: '8px',
-      border: '1px solid rgba(255,255,255,0.06)',
-      marginBottom: '8px',
+      background: 'rgba(247,97,30,0.06)',
+      borderRadius: 'var(--radius-md)',
+      border: '1px solid rgba(247,97,30,0.12)',
+      marginBottom: 8,
     }}>
       <Brain size={13} style={{ color: status.color, flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.85)', lineHeight: 1 }}>
+        <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--ink)', lineHeight: 1 }}>
           Twin is {status.label}
         </div>
-        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginTop: '3px', lineHeight: 1 }}>
+        <div style={{ fontSize: '10px', color: 'var(--steel)', marginTop: 3, lineHeight: 1 }}>
           {memoryCount} {memoryCount === 1 ? 'memory' : 'memories'} indexed
         </div>
       </div>
       <span style={{
-        width: '6px', height: '6px', borderRadius: '50%',
+        width: 6, height: 6, borderRadius: '50%',
         background: status.color, flexShrink: 0,
-        animation: status.pulse ? 'twin-pulse 2s ease infinite' : 'none',
       }} />
-      <style>{`
-        @keyframes twin-pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.35; }
-        }
-      `}</style>
     </div>
   );
 }
@@ -98,43 +91,61 @@ export function Sidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col h-screen w-[240px] bg-black/60 backdrop-blur-xl border-r border-[#00CC6610] p-4 fixed left-0 top-0 z-50">
+      <aside
+        className="hidden md:flex flex-col h-screen w-[240px] fixed left-0 top-0 z-50"
+        style={{
+          background: 'var(--cream-soft)',
+          borderRight: '1px solid var(--beige-deep)',
+          padding: '0 12px',
+        }}
+      >
         {/* Logo */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '10px',
-          height: '56px',
-          padding: '0 16px',
-          borderBottom: '1px solid var(--app-border)',
-          marginBottom: '24px'
-        }} className="group overflow-hidden">
-          <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="10" height="14" rx="2" stroke="var(--app-accent)" strokeWidth="1.5" fill="none"/>
-              <rect x="8" y="5" width="10" height="14" rx="2" stroke="var(--app-accent)" strokeWidth="1.5" fill="var(--app-bg)" fillOpacity="0.8"/>
-              <path d="M8 9h5.5a2 2 0 010 4H8" stroke="var(--app-accent)" strokeWidth="1.5" strokeLinecap="round"/>
+          gap: 10,
+          height: 64,
+          padding: '0 4px',
+          borderBottom: '1px solid var(--beige-deep)',
+          marginBottom: 20,
+        }}>
+          <div style={{
+            width: 28, height: 28,
+            borderRadius: 6,
+            background: 'var(--primary)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+              <rect x="2" y="2" width="10" height="14" rx="2" stroke="white" strokeWidth="1.5" fill="none"/>
+              <rect x="8" y="5" width="10" height="14" rx="2" stroke="white" strokeWidth="1.5" fill="rgba(0,0,0,0.2)"/>
+              <path d="M8 9h5.5a2 2 0 010 4H8" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
           </div>
           <h1 style={{
-            fontSize: '15px',
+            fontSize: 15,
             fontWeight: 600,
-            color: 'var(--app-text)',
+            color: 'var(--ink)',
             letterSpacing: '-0.02em',
             lineHeight: 1,
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
           }}>
             PersonaTwin
           </h1>
         </div>
 
         {/* Twin state widget */}
-        <div className="px-0 mb-4">
+        <div style={{ marginBottom: 8 }}>
           <TwinStatus memoryCount={memoryCount} isThinking={chatLoading} />
         </div>
 
+        {/* Section label */}
+        <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--steel)', padding: '0 4px', marginBottom: 6 }}>
+          Navigation
+        </p>
+
         {/* Nav */}
-        <nav className="flex-1 space-y-0.5">
+        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
           {navItems.map((item) => {
             const active = isActive(item.path);
             const badge = item.id === 'notes' ? memoryCount : item.id === 'chat' ? unreadChat : 0;
@@ -142,21 +153,24 @@ export function Sidebar() {
               <Link
                 key={item.id}
                 to={item.path}
-                className={cn(
-                  'relative flex items-center h-[40px] gap-3 px-3 rounded-lg transition-all duration-150 group overflow-hidden',
-                  active
-                    ? 'text-white bg-[#00CC6610] border border-[#00CC6622]'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04] border border-transparent'
-                )}
+                className={cn('nav-item', active && 'active')}
               >
-                <item.icon className={cn(
-                  'w-[16px] h-[16px] stroke-[1.6] flex-shrink-0',
-                  active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
-                )} />
-                <span className="font-medium text-[13px] leading-none flex-1 truncate">{item.label}</span>
+                <item.icon
+                  size={16}
+                  style={{
+                    flexShrink: 0,
+                    color: active ? 'var(--primary)' : 'var(--steel)',
+                  }}
+                />
+                <span style={{ flex: 1, fontSize: 13, fontWeight: 500 }}>{item.label}</span>
                 {badge > 0 && !active && <Badge count={badge} />}
                 {active && (
-                  <span style={{ width: '3px', height: '14px', background: 'var(--primary, #00CC66)', borderRadius: '2px', flexShrink: 0 }} />
+                  <span style={{
+                    width: 3, height: 14,
+                    background: 'var(--primary)',
+                    borderRadius: 2,
+                    flexShrink: 0,
+                  }} />
                 )}
               </Link>
             );
@@ -164,34 +178,69 @@ export function Sidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="mt-auto pt-4 border-t border-white/[0.04] space-y-1">
-          <div className="px-3 py-2">
-            <p className="text-[11px] text-muted-foreground truncate font-mono opacity-60">{user?.email}</p>
+        <div style={{
+          marginTop: 'auto',
+          paddingTop: 12,
+          borderTop: '1px solid var(--beige-deep)',
+          paddingBottom: 12,
+          display: 'flex', flexDirection: 'column', gap: 4,
+        }}>
+          {/* Sunset stripe mini */}
+          <div className="sunset-stripe" style={{ marginBottom: 12, borderRadius: 4 }} />
+
+          <div style={{ padding: '0 4px 4px' }}>
+            <p style={{ fontSize: 11, color: 'var(--steel)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {user?.email}
+            </p>
           </div>
           <button
             onClick={logout}
-            className="flex w-full items-center h-[40px] gap-3 px-3 rounded-lg transition-all duration-150 text-muted-foreground hover:text-red-400 hover:bg-red-400/8 group border border-transparent"
+            style={{
+              display: 'flex', width: '100%', alignItems: 'center', height: 40, gap: 10,
+              padding: '0 12px', borderRadius: 8,
+              color: 'var(--steel)',
+              background: 'none', border: '1px solid transparent',
+              cursor: 'pointer', fontSize: 13, fontWeight: 500,
+              transition: 'color 150ms ease, background 150ms ease',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.color = '#dc2626';
+              (e.currentTarget as HTMLElement).style.background = 'rgba(220,38,38,0.06)';
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.color = 'var(--steel)';
+              (e.currentTarget as HTMLElement).style.background = 'none';
+            }}
           >
-            <LogOut className="w-[16px] h-[16px] stroke-[1.6] group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
-            <span className="font-medium text-[13px]">Sign out</span>
+            <LogOut size={15} style={{ flexShrink: 0 }} />
+            <span>Sign out</span>
           </button>
         </div>
       </aside>
 
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 glass backdrop-blur-2xl border-t border-[#00CC6615] flex items-center justify-around px-4 z-50">
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 h-16 flex items-center justify-around px-4 z-50"
+        style={{
+          background: 'var(--cream-soft)',
+          borderTop: '1px solid var(--beige-deep)',
+        }}
+      >
         {navItems.map((item) => {
           const active = isActive(item.path);
           return (
             <Link
               key={item.id}
               to={item.path}
-              className={cn(
-                'p-2 rounded-xl transition-all duration-150',
-                active ? 'text-primary bg-primary/10' : 'text-muted-foreground'
-              )}
+              style={{
+                padding: 8,
+                borderRadius: 8,
+                color: active ? 'var(--primary)' : 'var(--steel)',
+                background: active ? 'rgba(247,97,30,0.08)' : 'transparent',
+                transition: 'color 150ms ease, background 150ms ease',
+              }}
             >
-              <item.icon className="w-6 h-6 stroke-[1.5]" />
+              <item.icon size={22} style={{ display: 'block' }} />
             </Link>
           );
         })}

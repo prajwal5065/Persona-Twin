@@ -1,6 +1,6 @@
 import React, { CSSProperties } from 'react';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'cream' | 'dark';
 type Size = 'sm' | 'md';
 
 interface AppButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -12,26 +12,34 @@ interface AppButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<Variant, { normal: CSSProperties; hover: CSSProperties }> = {
   primary: {
-    normal: { background: 'var(--app-accent)', color: 'white', borderColor: 'var(--app-accent)' },
-    hover:  { background: 'var(--app-accent-hover)', borderColor: 'var(--app-accent-hover)' },
+    normal: { background: 'var(--primary)', color: 'white', borderColor: 'var(--primary)' },
+    hover:  { background: 'var(--primary-deep)', borderColor: 'var(--primary-deep)' },
+  },
+  dark: {
+    normal: { background: 'var(--ink)', color: 'white', borderColor: 'var(--ink)' },
+    hover:  { background: 'var(--charcoal)' },
   },
   secondary: {
-    normal: { background: 'transparent', color: 'var(--app-text)', borderColor: 'var(--app-border2)' },
-    hover:  { background: 'rgba(255,255,255,0.04)', borderColor: 'var(--app-border2)' },
+    normal: { background: 'transparent', color: 'var(--ink)', borderColor: 'var(--hairline-strong)' },
+    hover:  { background: 'var(--surface)', borderColor: 'var(--beige-deep)' },
+  },
+  cream: {
+    normal: { background: 'var(--cream)', color: 'var(--ink)', borderColor: 'var(--beige-deep)' },
+    hover:  { background: 'var(--cream-deeper)' },
   },
   ghost: {
-    normal: { background: 'transparent', color: 'var(--app-muted)', borderColor: 'transparent' },
-    hover:  { color: 'var(--app-text)', background: 'rgba(255,255,255,0.04)' },
+    normal: { background: 'transparent', color: 'var(--steel)', borderColor: 'transparent' },
+    hover:  { color: 'var(--ink)', background: 'var(--surface)', borderColor: 'var(--hairline)' },
   },
   danger: {
-    normal: { background: 'transparent', color: 'var(--app-danger)', borderColor: 'rgba(239,68,68,0.3)' },
-    hover:  { background: 'rgba(239,68,68,0.08)' },
+    normal: { background: 'transparent', color: '#dc2626', borderColor: 'rgba(220,38,38,0.25)' },
+    hover:  { background: 'rgba(220,38,38,0.07)' },
   },
 };
 
 const sizeStyles: Record<Size, CSSProperties> = {
-  sm: { fontSize: '13px', padding: '6px 12px', height: '32px' },
-  md: { fontSize: '14px', padding: '8px 16px', height: '36px' },
+  sm: { fontSize: '13px', padding: '6px 14px', height: '34px' },
+  md: { fontSize: '14px', padding: '10px 20px', height: '40px' },
 };
 
 export function AppButton({
@@ -47,9 +55,9 @@ export function AppButton({
   const [pressed, setPressed] = React.useState(false);
 
   const base: CSSProperties = {
-    fontFamily: 'inherit',
+    fontFamily: 'Inter, sans-serif',
     fontWeight: 500,
-    borderRadius: '6px',
+    borderRadius: '8px',
     cursor: disabled ? 'not-allowed' : 'pointer',
     transition: 'background 150ms ease, border-color 150ms ease, opacity 150ms ease, transform 150ms ease',
     display: 'inline-flex',
@@ -60,8 +68,7 @@ export function AppButton({
     opacity: disabled ? 0.45 : 1,
     width: fullWidth ? '100%' : undefined,
     whiteSpace: 'nowrap',
-    letterSpacing: '-0.01em',
-    transform: disabled ? 'none' : pressed ? 'scale(0.97)' : hovered ? 'translateY(-1px)' : 'none',
+    transform: disabled ? 'none' : pressed ? 'scale(0.97)' : 'none',
     ...sizeStyles[size],
     ...variantStyles[variant].normal,
     ...(hovered && !disabled ? variantStyles[variant].hover : {}),

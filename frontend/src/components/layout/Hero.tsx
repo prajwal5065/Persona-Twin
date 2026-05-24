@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 interface HeroProps {
   children?: React.ReactNode;
@@ -9,70 +9,112 @@ interface HeroProps {
 
 export const Hero: React.FC<HeroProps> = ({ children, showDefaultContent = true }) => {
   return (
-    <section className="relative h-screen w-full overflow-hidden flex items-center justify-center bg-black">
-      {/* Background Video */}
-      <video 
-        autoPlay 
-        loop 
-        muted 
-        playsInline 
-        className="absolute inset-0 w-full h-full object-cover z-0 opacity-60"
-      >
-        <source src="https://res.cloudinary.com/dfonotyfb/video/upload/v1775585556/dds3_1_rqhg7x.mp4" type="video/mp4" />
-      </video>
+    <section
+      className="relative w-full overflow-hidden flex items-center"
+      style={{
+        minHeight: '88vh',
+        background: 'linear-gradient(135deg, #FBF0CC 0%, #F9C87A 28%, #F07B22 58%, #D94F10 100%)',
+      }}
+    >
+      {/* Decorative background circles */}
+      <div style={{
+        position: 'absolute', width: 600, height: 600, borderRadius: '50%',
+        background: 'rgba(255,255,255,0.07)', top: -180, right: -120, pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', width: 400, height: 400, borderRadius: '50%',
+        background: 'rgba(255,255,255,0.05)', bottom: -100, left: 80, pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', width: 200, height: 200, borderRadius: '50%',
+        background: 'rgba(255,255,255,0.04)', top: '40%', right: '15%', pointerEvents: 'none',
+      }} />
 
-      {/* Cinematic Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0d150e] via-transparent to-[#0d150e]/80 z-10" />
-      <div className="absolute inset-0 bg-black/20 z-10" />
-
-      {/* Content Container */}
-      <div className="relative z-20 w-full max-w-7xl mx-auto px-6 flex items-center justify-center">
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-8 lg:px-16 py-24">
         {showDefaultContent && !children ? (
-          <div className="text-center">
+          <div style={{ maxWidth: 680 }}>
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="flex flex-col items-center gap-6"
+              transition={{ duration: 0.7, ease: 'easeOut' }}
             >
-              {/* Badge */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                className="px-4 py-1.5 rounded-full border border-[#00CC66]/30 bg-[#00CC66]/10 backdrop-blur-md flex items-center gap-2 mb-4"
+              {/* Eyebrow */}
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15, duration: 0.5 }}
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.12em',
+                  color: 'rgba(255,255,255,0.7)',
+                  marginBottom: 24,
+                }}
               >
-                <Sparkles className="w-4 h-4 text-[#00CC66]" />
-                <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#00CC66] mono">
-                  Neural Synthesis Core v2.0
-                </span>
-              </motion.div>
+                Neural Synthesis Core v2.0
+              </motion.p>
 
-              {/* Main Heading */}
-              <h1 className="text-5xl md:text-8xl font-bold tracking-tight text-white leading-[1.1]">
-                Your Digital Twin, <br />
-                <span className="gradient-text">Evolved.</span>
+              {/* Hero display */}
+              <h1
+                style={{
+                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontWeight: 400,
+                  fontSize: 'clamp(48px, 7vw, 84px)',
+                  lineHeight: 1.05,
+                  letterSpacing: '-1.5px',
+                  color: 'white',
+                  marginBottom: 28,
+                }}
+              >
+                Your Digital Twin,{' '}
+                <em style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.88)' }}>Evolved.</em>
               </h1>
 
-              {/* Subheading */}
-              <p className="max-w-2xl text-lg md:text-xl text-white/60 leading-relaxed font-light">
-                Forge a recursive neural echo of your personality. Secure, autonomous, and 
-                designed to synchronize with your cognitive patterns in real-time.
+              {/* Subtitle */}
+              <p
+                style={{
+                  fontSize: 18,
+                  lineHeight: 1.55,
+                  color: 'rgba(255,255,255,0.78)',
+                  maxWidth: 520,
+                  marginBottom: 40,
+                }}
+              >
+                Forge a recursive AI echo of your personality. Secure, autonomous, and designed to synchronize with your cognitive patterns in real-time.
               </p>
 
-              {/* Actions */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
+              {/* CTA row */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.6 }}
-                className="flex flex-col sm:flex-row gap-4 mt-8"
+                transition={{ delay: 0.35, duration: 0.5 }}
+                style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}
               >
-                <button className="px-8 py-4 bg-[#00CC66] text-black font-bold text-sm uppercase tracking-widest hover:bg-[#00E673] transition-all flex items-center gap-2 group border-none shadow-[0_0_30px_rgba(0,204,102,0.3)]">
-                  Initialize Synthesis
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <button
+                  id="hero-cta-primary"
+                  className="btn-dark"
+                  style={{ fontSize: 14, padding: '12px 24px' }}
+                >
+                  Get Started <ArrowRight className="w-4 h-4" />
                 </button>
-                <button className="px-8 py-4 glass text-white font-bold text-sm uppercase tracking-widest hover:bg-white/5 transition-all border-[#00CC66]/20">
-                  Technical Documentation
+                <button
+                  id="hero-cta-secondary"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    background: 'rgba(255,255,255,0.15)',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: 8,
+                    fontSize: 14,
+                    fontWeight: 500,
+                    border: '1px solid rgba(255,255,255,0.25)',
+                    cursor: 'pointer',
+                    transition: 'background 150ms ease',
+                  }}
+                >
+                  Learn More
                 </button>
               </motion.div>
             </motion.div>
@@ -82,27 +124,8 @@ export const Hero: React.FC<HeroProps> = ({ children, showDefaultContent = true 
         )}
       </div>
 
-      {/* Bottom Technical Indicator */}
-      <div className="absolute bottom-10 left-10 z-20 hidden lg:block">
-        <div className="flex items-center gap-4 text-[10px] text-white/30 mono uppercase tracking-widest">
-          <div className="w-12 h-[1px] bg-[#00CC66]/30" />
-          <span>System Status: Uplink Active</span>
-        </div>
-      </div>
-
-      <div className="absolute bottom-10 right-10 z-20 hidden lg:block">
-        <div className="flex items-center gap-4 text-[10px] text-white/30 mono uppercase tracking-widest">
-          <span>Lat: 37.7749 / Long: -122.4194</span>
-          <div className="w-12 h-[1px] bg-[#00CC66]/30" />
-        </div>
-      </div>
-
-      {/* Decorative Scanner Line */}
-      <motion.div 
-        animate={{ top: ['0%', '100%', '0%'] }}
-        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-        className="absolute left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#00CC66]/10 to-transparent z-10 pointer-events-none"
-      />
+      {/* Sunset stripe at bottom */}
+      <div className="sunset-stripe" style={{ position: 'absolute', bottom: 0, left: 0 }} />
     </section>
   );
 };
