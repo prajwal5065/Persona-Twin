@@ -16,11 +16,29 @@ const InsightsPage = lazy(() => import('./pages/InsightsPage').then((m) => ({ de
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
 const SimulationPage = lazy(() => import('./pages/SimulationPage').then((m) => ({ default: m.SimulationPage })));
 
+// Eagerly prefetch Dashboard + Sidebar when user is authenticated
+// This kicks off the chunk fetch in parallel with the initial module parse,
+// dramatically reducing time-to-interactive for logged-in users.
+if (localStorage.getItem('token')) {
+  import('./pages/DashboardPage');
+  import('./components/layout/Sidebar');
+}
+
 const PageLoader = () => (
-  <div className="h-screen w-screen flex items-center justify-center bg-[#0A0A0A] relative overflow-hidden">
-    <div className="bg-orb orb-1" />
-    <div className="bg-orb orb-2" />
-    <CustomSpinner className="w-12 h-12 relative z-10" />
+  <div style={{ height: '100vh', width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--cream-soft)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+      <div style={{
+        width: 44, height: 44, borderRadius: 10,
+        background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+          <rect x="2" y="2" width="10" height="14" rx="2" stroke="white" strokeWidth="1.5" fill="none"/>
+          <rect x="8" y="5" width="10" height="14" rx="2" stroke="white" strokeWidth="1.5" fill="rgba(0,0,0,0.2)"/>
+          <path d="M8 9h5.5a2 2 0 010 4H8" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+      </div>
+      <CustomSpinner className="w-6 h-6" />
+    </div>
   </div>
 );
 

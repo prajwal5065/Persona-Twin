@@ -1,21 +1,20 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Edit3, Sparkles, Battery, BatteryLow, RefreshCw, User2 } from 'lucide-react';
+import { Edit3, Sparkles, Battery, BatteryLow, RefreshCw } from 'lucide-react';
 import { useAuthStore } from '../store/auth.store';
 import { useNotesStore } from '../store/notes.store';
 import { profileApi } from '../api/profile.api';
-import PageHeader from '../components/PageHeader';
 import ProgressRing from '../components/ProgressRing';
 import type { PersonalityProfile } from '../types';
 
 // ─── configuration ───────────────────────────────────────────────────────────
 
 const OCEAN_CONFIG = [
-  { key: 'openness', label: 'Openness', color: '#3b82f6', shortDesc: 'Highly imaginative and intellectually curious' },
+  { key: 'openness',          label: 'Openness',          color: '#3b82f6', shortDesc: 'Highly imaginative and intellectually curious' },
   { key: 'conscientiousness', label: 'Conscientiousness', color: '#8b5cf6', shortDesc: 'Deliberate and quality-focused' },
-  { key: 'extraversion', label: 'Extraversion', color: '#f59e0b', shortDesc: 'Prefers depth over breadth in social settings' },
-  { key: 'agreeableness', label: 'Agreeableness', color: '#10b981', shortDesc: 'Collaborative with strong principles' },
-  { key: 'neuroticism', label: 'Neuroticism', color: '#ef4444', shortDesc: 'Emotionally resilient and stable' },
+  { key: 'extraversion',      label: 'Extraversion',      color: '#f59e0b', shortDesc: 'Prefers depth over breadth in social settings' },
+  { key: 'agreeableness',     label: 'Agreeableness',     color: '#10b981', shortDesc: 'Collaborative with strong principles' },
+  { key: 'neuroticism',       label: 'Neuroticism',       color: '#ef4444', shortDesc: 'Emotionally resilient and stable' },
 ] as const;
 
 // ─── sub-components ──────────────────────────────────────────────────────────
@@ -30,44 +29,48 @@ function OceanBar({ config, value, index }: { config: any; value: number; index:
 
   const intensity =
     value >= 80 ? 'High' :
-    value >= 60 ? 'Moderate-High' :
+    value >= 60 ? 'Moderate–High' :
     value >= 40 ? 'Moderate' :
-    value >= 20 ? 'Moderate-Low' : 'Low';
+    value >= 20 ? 'Moderate–Low' : 'Low';
 
   return (
-    <div className="group">
-      <div className="flex items-center justify-between mb-1.5">
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
         <div>
-          <span className="text-sm font-medium text-slate-200">{config.label}</span>
-          <span className="text-[11px] text-muted-foreground ml-2 opacity-60 font-mono uppercase tracking-widest">{intensity}</span>
+          <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--charcoal)' }}>{config.label}</span>
+          <span style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--steel)', marginLeft: 8 }}>{intensity}</span>
         </div>
-        <span className="text-sm font-mono font-semibold" style={{ color: config.color }}>{value}</span>
+        <span style={{ fontSize: 14, fontWeight: 600, fontFamily: 'monospace', color: config.color }}>{value}</span>
       </div>
-      <div className="h-2 bg-surface-700 rounded-full overflow-hidden mb-1">
+      <div style={{ height: 6, background: 'var(--hairline)', borderRadius: 999, overflow: 'hidden', marginBottom: 4 }}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: animated ? `${value}%` : '0%' }}
-          transition={{ duration: 1.2, ease: "easeOut" }}
-          className="h-full rounded-full"
-          style={{ backgroundColor: config.color }}
+          transition={{ duration: 1.2, ease: 'easeOut' }}
+          style={{ height: '100%', borderRadius: 999, background: config.color }}
         />
       </div>
-      <p className="text-[11px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200 leading-relaxed">
-        {config.shortDesc}
-      </p>
+      <p style={{ fontSize: 11, color: 'var(--steel)', lineHeight: 1.4 }}>{config.shortDesc}</p>
     </div>
   );
 }
 
-function TagPill({ text, variant = 'default' }: { text: string; variant?: 'default' | 'accent' | 'green' | 'red' }) {
-  const variants = {
-    default: 'bg-surface-700 text-slate-300 border-surface-600',
-    accent: 'bg-accent-500/10 text-accent-400 border-accent-500/20',
-    green: 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20',
-    red: 'bg-red-400/10 text-red-400 border-red-400/20',
+function TagPill({ text, variant = 'default' }: { text: string; variant?: 'default' | 'orange' | 'green' | 'red' }) {
+  const styles: Record<string, React.CSSProperties> = {
+    default: { background: 'var(--surface)', color: 'var(--slate)', border: '1px solid var(--hairline)' },
+    orange:  { background: 'rgba(247,97,30,0.08)', color: 'var(--primary)', border: '1px solid rgba(247,97,30,0.2)' },
+    green:   { background: 'rgba(16,185,129,0.08)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)' },
+    red:     { background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' },
   };
   return (
-    <span className={`badge border text-[11px] py-1 ${variants[variant]}`}>{text}</span>
+    <span style={{
+      display: 'inline-flex', alignItems: 'center',
+      fontSize: 12, fontWeight: 500,
+      padding: '4px 12px', borderRadius: 999,
+      ...styles[variant],
+    }}>
+      {text}
+    </span>
   );
 }
 
@@ -96,197 +99,258 @@ export function ProfilePage() {
     }
   };
 
-  // Helper to derive values if missing from backend
-  const coreValues = profile?.coreValues || ['Autonomy', 'Innovation', 'Growth', 'Security'];
+  const coreValues    = profile?.coreValues    || ['Autonomy', 'Innovation', 'Growth', 'Security'];
   const cognitiveStyle = profile?.cognitiveStyle || ['Analytical', 'Recursive', 'Pattern-Oriented'];
-  const energyProfile = profile?.energyProfile || {
+  const energyProfile  = profile?.energyProfile  || {
     sources: ['Deep Work', 'Abstract Logic', 'Solitude'],
-    drains: ['Surface Interaction', 'Redundancy', 'Cognitive Noise']
+    drains:  ['Surface Interaction', 'Redundancy', 'Cognitive Noise'],
   };
 
-  const completion = user?.full_name ? 85 : 45; // Simulated logic
-  const joinedDate = user?.created_at 
+  const completion = user?.full_name ? 85 : 45;
+  const joinedDate = user?.created_at
     ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : 'Recently';
 
   const initials = (user?.full_name?.charAt(0) || user?.email?.charAt(0) || '?').toUpperCase();
 
   return (
-    <div className="px-8 py-8 max-w-6xl mx-auto">
-      <div className="flex items-start justify-between">
-        <PageHeader
-          title="Digital Identity"
-          subtitle="Your personality, values, and cognitive fingerprint — assembled from your memories."
-        />
-        <button
-          onClick={fetchProfile}
-          disabled={loading}
-          className="btn-ghost"
-        >
-          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-          <span>Sync Identity</span>
-        </button>
+    <div style={{ background: 'var(--surface)', minHeight: '100vh' }}>
+
+      {/* Page header */}
+      <div style={{
+        background: 'var(--canvas)',
+        borderBottom: '1px solid var(--hairline-soft)',
+        padding: '28px 32px 24px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--steel)', marginBottom: 6 }}>
+              Identity
+            </p>
+            <h1 style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontWeight: 400, fontSize: 32, color: 'var(--ink)',
+              letterSpacing: '-0.5px', lineHeight: 1.15,
+            }}>
+              Digital Identity
+            </h1>
+            <p style={{ fontSize: 14, color: 'var(--slate)', marginTop: 6 }}>
+              Your personality, values, and cognitive fingerprint — assembled from your memories.
+            </p>
+          </div>
+          <button
+            id="sync-identity-btn"
+            onClick={fetchProfile}
+            disabled={loading}
+            className="btn-secondary"
+            style={{ fontSize: 13 }}
+          >
+            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+            Sync Identity
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Identity card + OCEAN */}
-        <div className="lg:col-span-2 space-y-5">
-          {/* Summary card */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="card p-8"
-          >
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-              <div 
-                className="w-20 h-20 bg-accent-500 shadow-2xl flex items-center justify-center flex-shrink-0 text-white text-3xl font-bold"
-                style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}
-              >
-                {initials}
-              </div>
-              <div className="flex-1 text-center md:text-left">
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                  <div>
-                    <h2 className="text-2xl font-bold text-white tracking-tight">{user?.full_name || 'Neural Operator'}</h2>
-                    <div className="flex items-center justify-center md:justify-start gap-2 mt-1.5">
-                      <Sparkles size={12} className="text-accent-400" />
-                      <span className="text-[11px] font-bold text-accent-400 uppercase tracking-widest">Twin active since {joinedDate}</span>
-                    </div>
-                  </div>
-                  <button className="btn-ghost text-xs">
-                    <Edit3 size={13} />
-                    Refine Identity
-                  </button>
+      {/* Sunset stripe */}
+      <div className="sunset-stripe" />
+
+      {/* Content */}
+      <div style={{ padding: '28px 32px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, maxWidth: 1100 }}>
+
+          {/* Left: identity + OCEAN */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+            {/* Identity card */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="card"
+            >
+              <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                {/* Hexagon avatar */}
+                <div style={{
+                  width: 72, height: 72,
+                  background: 'linear-gradient(135deg, var(--primary) 0%, var(--sunshine-700) 100%)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
+                  clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
+                  color: 'white', fontSize: 28, fontWeight: 700,
+                }}>
+                  {initials}
                 </div>
-                <p className="mt-6 text-sm text-muted-foreground leading-relaxed font-medium">
-                  {profile?.summary || "Your digital twin is currently synthesizing your behavioral patterns. Establish more memories to complete the neural mapping."}
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                    <div>
+                      <h2 style={{ fontSize: 22, fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.02em' }}>
+                        {user?.full_name || 'Neural Operator'}
+                      </h2>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                        <Sparkles size={12} style={{ color: 'var(--primary)' }} />
+                        <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--primary)' }}>
+                          Twin active since {joinedDate}
+                        </span>
+                      </div>
+                    </div>
+                    <button className="btn-ghost" style={{ fontSize: 12 }}>
+                      <Edit3 size={12} />
+                      Edit Profile
+                    </button>
+                  </div>
+                  <p style={{ fontSize: 14, color: 'var(--slate)', lineHeight: 1.65, marginTop: 16 }}>
+                    {profile?.summary || 'Your digital twin is currently synthesizing your behavioral patterns. Establish more memories to complete the neural mapping.'}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* OCEAN profile */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="card"
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
+                <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  OCEAN Personality Profile
+                </h3>
+                <span style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--steel)' }}>Big Five Model</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                {OCEAN_CONFIG.map((config, i) => (
+                  <OceanBar
+                    key={config.key}
+                    config={config}
+                    value={profile?.[config.key as keyof PersonalityProfile] as number || 0}
+                    index={i}
+                  />
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Cognitive style */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="card"
+            >
+              <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
+                Cognitive Style
+              </h3>
+              <p style={{ fontSize: 13, color: 'var(--slate)', marginBottom: 14 }}>How your twin processes and interprets data:</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {cognitiveStyle.map(s => <TagPill key={s} text={s} variant="orange" />)}
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Right panel */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+            {/* Profile completion */}
+            <motion.div
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="card-cream"
+              style={{ padding: 24 }}
+            >
+              <h3 style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--slate)', marginBottom: 20 }}>
+                Profile Completion
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingBottom: 8 }}>
+                <div style={{ position: 'relative' }}>
+                  <ProgressRing value={completion} size={110} strokeWidth={6} />
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <span style={{
+                      fontFamily: "'Playfair Display', Georgia, serif",
+                      fontWeight: 400, fontSize: 28, color: 'var(--ink)',
+                    }}>{completion}%</span>
+                  </div>
+                </div>
+                <p style={{ fontSize: 12, color: 'var(--slate)', textAlign: 'center', marginTop: 16, lineHeight: 1.55 }}>
+                  Deepen synchronization by establishing more core memories.
                 </p>
               </div>
-            </div>
-          </motion.div>
 
-          {/* OCEAN traits */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="card p-8"
-          >
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-sm font-bold text-white uppercase tracking-widest">OCEAN Personality Profile</h3>
-              <span className="section-label">Big Five Model</span>
-            </div>
-            <div className="space-y-6">
-              {OCEAN_CONFIG.map((config, i) => (
-                <OceanBar
-                  key={config.key}
-                  config={config}
-                  value={profile?.[config.key as keyof PersonalityProfile] as number || 0}
-                  index={i}
-                />
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Cognitive style */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="card p-8"
-          >
-            <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-6">Cognitive Style</h3>
-            <p className="text-sm text-muted-foreground mb-4 font-medium">How your twin processes and interprets data:</p>
-            <div className="flex flex-wrap gap-2.5">
-              {cognitiveStyle.map(s => (
-                <TagPill key={s} text={s} variant="accent" />
-              ))}
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Right panel */}
-        <div className="space-y-6">
-          {/* Completion */}
-          <motion.div 
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="card p-6"
-          >
-            <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-6">Profile Completion</h3>
-            <div className="flex flex-col items-center py-4">
-              <div className="relative">
-                <ProgressRing value={completion} size={110} strokeWidth={6} />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-3xl font-bold text-white tracking-tighter">{completion}%</span>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground text-center mt-6 leading-relaxed font-medium">
-                Deepen synchronization by establishing more core memories.
-              </p>
-            </div>
-            <div className="mt-8 space-y-4">
-              {[
-                { label: 'Memories stored', val: `${notes.length}`, done: notes.length > 5 },
-                { label: 'Insights generated', val: profile ? 'Verified' : 'Pending', done: !!profile },
-                { label: 'Decisions simulated', val: '0', done: false },
-                { label: 'Conflict patterns', val: 'Pending', done: false },
-              ].map(({ label, val, done }) => (
-                <div key={label} className="flex items-center justify-between text-[11px] uppercase tracking-wider font-bold">
-                  <div className="flex items-center gap-2.5">
-                    <div className={`w-1.5 h-1.5 rounded-full ${done ? 'bg-emerald-400 emerald-glow' : 'bg-surface-700'}`} />
-                    <span className="text-muted-foreground">{label}</span>
+              <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--beige-deep)', paddingTop: 20 }}>
+                {[
+                  { label: 'Memories stored',   val: `${notes.length}`,     done: notes.length > 5 },
+                  { label: 'Insights generated', val: profile ? 'Verified' : 'Pending', done: !!profile },
+                  { label: 'Decisions simulated', val: '0',                  done: false },
+                  { label: 'Conflict patterns',   val: 'Pending',           done: false },
+                ].map(({ label, val, done }) => (
+                  <div key={label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{
+                        width: 6, height: 6, borderRadius: '50%',
+                        background: done ? 'var(--primary)' : 'var(--hairline)',
+                        flexShrink: 0,
+                      }} />
+                      <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: done ? 'var(--ink)' : 'var(--muted-text)' }}>{val}</span>
                   </div>
-                  <span className={done ? 'text-slate-200' : 'text-muted-foreground/40'}>{val}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
+                ))}
+              </div>
+            </motion.div>
 
-          {/* Core values */}
-          <motion.div 
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="card p-6"
-          >
-            <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4">Core Values</h3>
-            <div className="flex flex-wrap gap-2">
-              {coreValues.map(v => <TagPill key={v} text={v} />)}
-            </div>
-          </motion.div>
+            {/* Core values */}
+            <motion.div
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="card"
+              style={{ padding: 24 }}
+            >
+              <h3 style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--slate)', marginBottom: 14 }}>
+                Core Values
+              </h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {coreValues.map(v => <TagPill key={v} text={v} />)}
+              </div>
+            </motion.div>
 
-          {/* Energy profile */}
-          <motion.div 
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="card p-6"
-          >
-            <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-6">Energy Profile</h3>
-            <div className="space-y-6">
+            {/* Energy profile */}
+            <motion.div
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="card"
+              style={{ padding: 24 }}
+            >
+              <h3 style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--slate)', marginBottom: 20 }}>
+                Energy Profile
+              </h3>
               <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <Battery size={14} className="text-emerald-400" />
-                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Vitality Sources</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                  <Battery size={13} style={{ color: '#10b981' }} />
+                  <span style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#10b981' }}>Vitality Sources</span>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
                   {energyProfile.sources.map(s => <TagPill key={s} text={s} variant="green" />)}
                 </div>
-              </div>
-              <div className="h-px bg-surface-700/50" />
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <BatteryLow size={14} className="text-red-400" />
-                  <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Cognitive Drains</span>
+
+                <div style={{ height: 1, background: 'var(--hairline-soft)', marginBottom: 20 }} />
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                  <BatteryLow size={13} style={{ color: '#ef4444' }} />
+                  <span style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#ef4444' }}>Cognitive Drains</span>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {energyProfile.drains.map(d => <TagPill key={d} text={d} variant="red" />)}
                 </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
+
+        {/* Sunset stripe */}
+        <div className="sunset-stripe" style={{ marginTop: 48, borderRadius: 4 }} />
       </div>
     </div>
   );

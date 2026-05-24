@@ -6,14 +6,126 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Persona Twin | Your Digital AI Twin Dashboard</title>
     <meta name="description" content="Forge and interact with a recursive neural echo of your personality. Secure, autonomous, and designed to sync with your cognitive patterns in real-time." />
-    
-    <!-- Google Fonts Preconnect and Link -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+
+    <!-- ① Preconnect to Google Fonts CDN -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- ② Non-blocking font load via print→all swap trick -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <!-- Fallback for no-JS -->
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+    </noscript>
+
+    <!-- ③ Critical inline CSS — eliminates flash of unstyled content (FOUC) -->
+    <!-- Paints the cream background and shows a logo skeleton BEFORE React loads -->
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --primary: #F7611E;
+        --cream-soft: #FDF9F0;
+        --ink: #1A1A18;
+        --hairline: #E8E8E4;
+      }
+
+      html, body, #root {
+        width: 100%;
+        min-height: 100vh;
+        background-color: var(--cream-soft);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body {
+        font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+        color: var(--ink);
+      }
+
+      /* Full-page loading shell shown while JS bundle parses */
+      #shell {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--cream-soft);
+        z-index: 9999;
+        flex-direction: column;
+        gap: 18px;
+        transition: opacity 0.25s ease;
+      }
+
+      #shell.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* Logo mark */
+      #shell-logo {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        background: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Spinner */
+      @keyframes shell-spin {
+        to { transform: rotate(360deg); }
+      }
+
+      #shell-spinner {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2.5px solid rgba(247, 97, 30, 0.15);
+        border-top-color: #F7611E;
+        animation: shell-spin 0.8s linear infinite;
+      }
+    </style>
   </head>
   <body>
+    <!-- ④ Native loading shell — visible BEFORE React mounts -->
+    <div id="shell">
+      <div id="shell-logo">
+        <svg width="24" height="24" viewBox="0 0 20 20" fill="none">
+          <rect x="2" y="2" width="10" height="14" rx="2" stroke="white" stroke-width="1.5" fill="none"/>
+          <rect x="8" y="5" width="10" height="14" rx="2" stroke="white" stroke-width="1.5" fill="rgba(0,0,0,0.2)"/>
+          <path d="M8 9h5.5a2 2 0 010 4H8" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div id="shell-spinner"></div>
+    </div>
+
     <div id="root"></div>
+
+    <!-- ⑤ Dismiss shell once React has hydrated -->
+    <script>
+      // As soon as React renders something into #root, fade out the shell
+      (function() {
+        var observer = new MutationObserver(function() {
+          var root = document.getElementById('root');
+          if (root && root.children.length > 0) {
+            var shell = document.getElementById('shell');
+            if (shell) {
+              shell.classList.add('hidden');
+              setTimeout(function() { shell.remove(); }, 300);
+            }
+            observer.disconnect();
+          }
+        });
+        observer.observe(document.getElementById('root'), { childList: true });
+      })();
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

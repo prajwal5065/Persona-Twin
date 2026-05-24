@@ -4,7 +4,6 @@ import { useAuthStore } from '../store/auth.store';
 import { authApi } from '../api/auth.api';
 import { LogIn, UserPlus, ArrowRight, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { WolfIcon } from '../components/ui/WolfIcon';
 import { CustomSpinner } from '../components/ui/CustomSpinner';
 
 export const AuthPage: React.FC = () => {
@@ -33,131 +32,266 @@ export const AuthPage: React.FC = () => {
         setError('Registration successful. Please log in.');
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || (isLogin ? 'Invalid credentials. Neural sync failed.' : 'Registration failed.'));
+      setError(err.response?.data?.detail || (isLogin ? 'Invalid credentials.' : 'Registration failed.'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black p-6 relative overflow-hidden">
-      {/* Cinematic Video Background */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-        className="absolute inset-0 w-full h-full object-cover z-0"
-      >
-        <source src="https://res.cloudinary.com/dfonotyfb/video/upload/v1775585556/dds3_1_rqhg7x.mp4" type="video/mp4" />
-        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
-      </video>
+    <div
+      className="min-h-screen flex"
+      style={{
+        background: 'linear-gradient(135deg, #F5E8C0 0%, #F9C87A 30%, #F07B22 62%, #D94F10 100%)',
+      }}
+    >
+      {/* Left hero panel */}
+      <div className="hidden lg:flex flex-col justify-between flex-1 p-16 relative overflow-hidden">
+        {/* Decorative circles */}
+        <div
+          style={{
+            position: 'absolute', width: 480, height: 480,
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.07)',
+            top: -120, right: -120,
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute', width: 300, height: 300,
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.05)',
+            bottom: 60, left: -60,
+          }}
+        />
 
-      {/* Subtle Dark Overlay — keep video visible */}
-      <div className="absolute inset-0 bg-black/30 z-10 pointer-events-none" />
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full glass-strong p-10 rounded-[40px] space-y-10 relative z-20 border border-white/10"
-      >
-        <div className="text-center space-y-4">
-          <div className={`w-16 h-16 ${isLogin ? 'bg-primary/10 border-primary/20 shadow-[0_0_40px_rgba(0,204,102,0.1)]' : 'bg-accent-teal/10 border-accent-teal/20 shadow-[0_0_40px_rgba(0,179,179,0.1)]'} rounded-3xl flex items-center justify-center mx-auto mb-6 border`}>
-            <WolfIcon className={`w-10 h-10 ${isLogin ? 'text-primary' : 'text-accent-teal'}`} />
+        {/* Logo */}
+        <div className="relative z-10 flex items-center gap-3">
+          <div
+            style={{
+              width: 36, height: 36,
+              borderRadius: 8,
+              background: 'rgba(255,255,255,0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: '1px solid rgba(255,255,255,0.3)',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <rect x="2" y="2" width="10" height="14" rx="2" stroke="white" strokeWidth="1.5" fill="none"/>
+              <rect x="8" y="5" width="10" height="14" rx="2" stroke="white" strokeWidth="1.5" fill="rgba(0,0,0,0.15)"/>
+              <path d="M8 9h5.5a2 2 0 010 4H8" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
           </div>
-          <h1 className="text-[32px] font-bold tracking-[-0.04em]">
-            {isLogin ? (
-              <>Welcome <span className="gradient-text">Back</span></>
-            ) : (
-              <>Neural <span className="gradient-text">Onboarding</span></>
-            )}
-          </h1>
-          <p className="text-black text-[14px]">
-            {isLogin ? 'Re-establish synchronization with your digital core.' : 'Initialize your digital consciousness stream.'}
-          </p>
+          <span style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: 16, color: 'white', letterSpacing: '-0.02em' }}>
+            PersonaTwin
+          </span>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {!isLogin && (
-            <div className="space-y-2">
-              <label className="text-[11px] font-bold uppercase tracking-widest text-black ml-1">Entity Identifier</label>
+        {/* Hero copy */}
+        <div className="relative z-10">
+          <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.7)', marginBottom: 16 }}>
+            Your Digital Twin
+          </p>
+          <h1
+            style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontWeight: 400,
+              fontSize: 52,
+              lineHeight: 1.1,
+              letterSpacing: '-0.5px',
+              color: 'white',
+              marginBottom: 24,
+            }}
+          >
+            Your mind,<br />
+            always available.
+          </h1>
+          <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6, maxWidth: 380 }}>
+            Train a recursive AI model on your memories, values, and thinking patterns. Your twin reflects, responds, and evolves with you.
+          </p>
+
+          {/* Stats row */}
+          <div style={{ display: 'flex', gap: 40, marginTop: 48 }}>
+            {[
+              { value: '100%', label: 'Private' },
+              { value: 'RAG', label: 'Powered' },
+              { value: 'OCEAN', label: 'Personality' },
+            ].map(({ value, label }) => (
+              <div key={label}>
+                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 400, color: 'white', lineHeight: 1 }}>{value}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4 }}>{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom micro */}
+        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 500, position: 'relative', zIndex: 10 }}>
+          © 2025 PersonaTwin — All memories encrypted.
+        </p>
+      </div>
+
+      {/* Right: auth form panel */}
+      <div
+        className="flex items-center justify-center w-full lg:w-auto"
+        style={{ padding: '40px 24px', minWidth: 0 }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          style={{
+            background: 'var(--cream)',
+            border: '1px solid var(--beige-deep)',
+            borderRadius: 16,
+            padding: '40px 36px',
+            width: '100%',
+            maxWidth: 420,
+            boxShadow: 'rgba(0,0,0,0.14) 0px 16px 48px -8px',
+          }}
+        >
+          {/* Form header */}
+          <div style={{ marginBottom: 32 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--steel)', marginBottom: 8 }}>
+              {isLogin ? 'Welcome back' : 'Create account'}
+            </p>
+            <h2
+              style={{
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontWeight: 400,
+                fontSize: 32,
+                lineHeight: 1.15,
+                letterSpacing: '-0.5px',
+                color: 'var(--ink)',
+                margin: 0,
+              }}
+            >
+              {isLogin ? 'Sign in to your twin.' : 'Start your twin.'}
+            </h2>
+          </div>
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {!isLogin && (
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--slate)', marginBottom: 6 }}>
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="input-base"
+                  placeholder="Your full name"
+                  required={!isLogin}
+                />
+              </div>
+            )}
+
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--slate)', marginBottom: 6 }}>
+                Email
+              </label>
               <input
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-6 py-4 rounded-2xl bg-black/40 border border-[#00CC6610] focus:border-primary/40 focus:ring-4 focus:ring-primary/5 outline-none transition-all text-sm placeholder:text-muted-foreground/20 font-medium"
-                placeholder="Your Full Name"
-                required={!isLogin}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input-base"
+                placeholder="you@example.com"
+                required
               />
             </div>
-          )}
-          <div className="space-y-2">
-            <label className="text-[11px] font-bold uppercase tracking-widest text-black ml-1">Coordinate Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-6 py-4 rounded-2xl bg-black/40 border border-[#00CC6610] focus:border-primary/40 focus:ring-4 focus:ring-primary/5 outline-none transition-all text-sm placeholder:text-muted-foreground/20 font-medium"
-              placeholder="operator@selftwin.ai"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[11px] font-bold uppercase tracking-widest text-black ml-1">Access Protocol</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-6 py-4 rounded-2xl bg-black/40 border border-[#00CC6610] focus:border-primary/40 focus:ring-4 focus:ring-primary/5 outline-none transition-all text-sm placeholder:text-muted-foreground/20 font-medium"
-              placeholder="••••••••"
-              required
-            />
-          </div>
 
-          {error && <p className={`text-[12px] font-medium text-center py-3 rounded-xl border ${error.includes('successful') ? 'text-primary bg-primary/5 border-primary/10' : 'text-destructive bg-destructive/5 border-destructive/10'}`}>{error}</p>}
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--slate)', marginBottom: 6 }}>
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input-base"
+                placeholder="••••••••"
+                required
+              />
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className={`group w-full py-4 rounded-[22px] ${isLogin ? 'bg-primary hover:bg-primary/90' : 'bg-accent-teal hover:bg-accent-teal/90'} text-white font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-3 shadow-xl active-click`}
+            {error && (
+              <p
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  textAlign: 'center',
+                  padding: '10px 14px',
+                  borderRadius: 8,
+                  border: '1px solid',
+                  ...(error.includes('successful')
+                    ? { color: '#166534', background: '#f0fdf4', borderColor: '#bbf7d0' }
+                    : { color: '#991b1b', background: '#fef2f2', borderColor: '#fecaca' }),
+                }}
+              >
+                {error}
+              </p>
+            )}
+
+            <button
+              id="auth-submit-btn"
+              type="submit"
+              disabled={loading}
+              className="btn-dark"
+              style={{ width: '100%', justifyContent: 'center', marginTop: 8, height: 46 }}
+            >
+              {loading ? (
+                <CustomSpinner className="w-4 h-4" />
+              ) : (
+                <>
+                  {isLogin ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
+                  <span>{isLogin ? 'Sign In' : 'Create Account'}</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Toggle */}
+          <div
+            style={{
+              marginTop: 28,
+              paddingTop: 20,
+              borderTop: '1px solid var(--beige-deep)',
+              textAlign: 'center',
+              fontSize: 13,
+              color: 'var(--slate)',
+            }}
           >
-            {loading ? (
-              <CustomSpinner className="w-5 h-5" />
+            {isLogin ? (
+              <>
+                New here?{' '}
+                <button
+                  id="switch-to-register"
+                  type="button"
+                  onClick={() => { setIsLogin(false); setError(''); }}
+                  style={{ color: 'var(--primary)', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                >
+                  Create an account <ArrowRight className="w-3 h-3" />
+                </button>
+              </>
             ) : (
               <>
-                {isLogin ? (
-                  <LogIn className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                ) : (
-                  <UserPlus className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                )}
-                <span>{isLogin ? 'Initialize Core' : 'Begin Incarnation'}</span>
+                Already have an account?{' '}
+                <button
+                  id="switch-to-login"
+                  type="button"
+                  onClick={() => { setIsLogin(true); setError(''); }}
+                  style={{ color: 'var(--primary)', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                >
+                  <ArrowLeft className="w-3 h-3" /> Sign in
+                </button>
               </>
             )}
-          </button>
-        </form>
-
-        <p className="text-center text-[13px] text-muted-foreground font-medium pt-4 bg-white/[0.02] -mx-10 -mb-10 p-6 rounded-b-[40px] border-t border-white/[0.03]">
-          {isLogin ? (
-            <>
-              New operator?{' '}
-              <button type="button" onClick={() => { setIsLogin(false); setError(''); }} className="text-primary hover:text-primary-glow font-bold ml-1 transition-colors inline-flex items-center gap-1 group">
-                Register Segment <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-              </button>
-            </>
-          ) : (
-            <>
-              Already integrated?{' '}
-              <button type="button" onClick={() => { setIsLogin(true); setError(''); }} className="text-accent-teal hover:text-accent-teal-glow font-bold ml-1 transition-colors inline-flex items-center gap-1 group">
-                <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" /> Sign In
-              </button>
-            </>
-          )}
-        </p>
-      </motion.div>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 };
 
 export default AuthPage;
-

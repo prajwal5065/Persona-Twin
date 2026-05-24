@@ -7,17 +7,43 @@ export default function TypingIndicator() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 4 }}
       transition={{ duration: 0.18, ease: 'easeOut' }}
-      className="flex items-end gap-3"
+      style={{ display: 'flex', alignItems: 'flex-end', gap: 10 }}
     >
       {/* Twin avatar */}
-      <div className="w-7 h-7 rounded-full bg-accent-500/20 border border-accent-500/30 flex items-center justify-center flex-shrink-0 mb-0.5">
-        <span className="text-[9px] font-bold text-accent-400">T</span>
+      <div style={{
+        width: 28, height: 28, borderRadius: '50%',
+        background: 'rgba(247,97,30,0.10)',
+        border: '1px solid rgba(247,97,30,0.2)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0, marginBottom: 2,
+      }}>
+        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--primary)' }}>T</span>
       </div>
       {/* Dot bubble */}
-      <div className="px-4 py-3 bg-surface-800 border border-surface-700 rounded-2xl rounded-bl-sm flex items-center gap-1.5">
-        <span className="w-1.5 h-1.5 rounded-full bg-accent-400/70 animate-bounce [animation-delay:-0.3s]" />
-        <span className="w-1.5 h-1.5 rounded-full bg-accent-400/70 animate-bounce [animation-delay:-0.15s]" />
-        <span className="w-1.5 h-1.5 rounded-full bg-accent-400/70 animate-bounce" />
+      <div style={{
+        padding: '10px 14px',
+        background: 'var(--canvas)',
+        border: '1px solid var(--hairline-soft)',
+        borderRadius: '12px 12px 12px 3px',
+        display: 'flex', alignItems: 'center', gap: 5,
+      }}>
+        {['-0.3s', '-0.15s', '0s'].map((delay, i) => (
+          <span
+            key={i}
+            style={{
+              width: 6, height: 6, borderRadius: '50%',
+              background: 'rgba(247,97,30,0.5)',
+              display: 'inline-block',
+              animation: `bounce 1.2s ${delay} infinite`,
+            }}
+          />
+        ))}
+        <style>{`
+          @keyframes bounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-5px); }
+          }
+        `}</style>
       </div>
     </motion.div>
   );

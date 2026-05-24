@@ -10,11 +10,6 @@ import { useNotesStore } from '../store/notes.store';
 import { useChatStore } from '../store/chat.store';
 import { insightsApi } from '../api/insights.api';
 import type { InsightResponse } from '../types';
-import { AppButton } from '../components/ui/AppButton';
-import { AppCard } from '../components/ui/AppCard';
-
-// Import background image
-import dashboardBg from '../assets/dashboard-bg.webp';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -37,12 +32,9 @@ function formatRelativeTime(dateStr: string): string {
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric'
-  });
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-/** OCEAN average → "profile completion %" */
 function profileCompletion(profile: Record<string, number> | null): number {
   if (!profile) return 0;
   const keys = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'];
@@ -53,10 +45,10 @@ function profileCompletion(profile: Record<string, number> | null): number {
 // ─── sub-components ──────────────────────────────────────────────────────────
 
 function StatCard({
-  icon: Icon, label, value, sub, to, color = 'text-accent-400', delay = 0, style,
+  icon: Icon, label, value, sub, to, accentColor = 'var(--primary)', delay = 0, style,
 }: {
   icon: React.ElementType; label: string; value: string | number;
-  sub?: string; to: string; color?: string; delay?: number; style?: React.CSSProperties;
+  sub?: string; to: string; accentColor?: string; delay?: number; style?: React.CSSProperties;
 }) {
   return (
     <motion.div
@@ -66,50 +58,62 @@ function StatCard({
     >
       <Link
         to={to}
-        className="backdrop-blur-md bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 p-5 rounded-2xl block group shadow-2xl"
+        className="card-hover block group"
         style={style}
       >
-        <div className="flex items-start justify-between mb-4">
-          <div className="w-8 h-8 rounded-lg bg-black/40 flex items-center justify-center">
-            <Icon size={15} className={color} />
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 8,
+            background: 'rgba(247,97,30,0.08)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: '1px solid rgba(247,97,30,0.12)',
+          }}>
+            <Icon size={16} style={{ color: accentColor }} />
           </div>
-          <ArrowRight
-            size={13}
-            className="text-muted group-hover:text-white group-hover:translate-x-0.5 transition-all duration-200"
-          />
+          <ArrowRight size={13} style={{ color: 'var(--muted-text)', marginTop: 2, transition: 'color 150ms, transform 150ms' }} />
         </div>
-        <div 
-          className="font-bold text-white mb-0.5"
-          style={{ fontSize: style?.fontSize || '24px' }}
-        >
+        <div style={{
+          fontFamily: "'Playfair Display', Georgia, serif",
+          fontWeight: 400,
+          fontSize: (style?.fontSize as string) || '28px',
+          color: 'var(--ink)',
+          marginBottom: 4,
+          lineHeight: 1.1,
+        }}>
           {value}
         </div>
-        <div className="text-xs font-medium text-slate-300">{label}</div>
-        {sub && <div className="text-[11px] text-slate-400/80 mt-0.5">{sub}</div>}
+        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--slate)' }}>{label}</div>
+        {sub && <div style={{ fontSize: 11, color: 'var(--steel)', marginTop: 2 }}>{sub}</div>}
       </Link>
     </motion.div>
   );
 }
 
-
-// Trend strings from InsightResponse.trends → chip display
-const TREND_COLORS = [
-  { border: 'border-blue-500/30',   bg: 'bg-blue-500/10',   color: 'text-blue-300',   label: 'Pattern' },
-  { border: 'border-violet-500/30', bg: 'bg-violet-500/10', color: 'text-violet-300', label: 'Behavior' },
-  { border: 'border-emerald-500/30',bg: 'bg-emerald-500/10',color: 'text-emerald-300',label: 'Growth' },
+const TREND_CONFIGS = [
+  { border: 'rgba(59,130,246,0.25)', bg: 'rgba(59,130,246,0.06)', color: '#3b82f6', label: 'Pattern' },
+  { border: 'rgba(139,92,246,0.25)', bg: 'rgba(139,92,246,0.06)', color: '#8b5cf6', label: 'Behavior' },
+  { border: 'rgba(247,97,30,0.25)',  bg: 'rgba(247,97,30,0.06)',  color: 'var(--primary)', label: 'Insight' },
 ];
 
 function InsightChip({ text, index }: { text: string; index: number }) {
-  const cfg = TREND_COLORS[index % TREND_COLORS.length];
+  const cfg = TREND_CONFIGS[index % TREND_CONFIGS.length];
   return (
     <Link
       to="/insights"
-      className={`flex items-start gap-2.5 p-3 rounded-xl border backdrop-blur-sm ${cfg.border} ${cfg.bg} hover:bg-opacity-20 transition-all`}
+      style={{
+        display: 'flex', alignItems: 'flex-start', gap: 10,
+        padding: '12px 14px',
+        borderRadius: 8,
+        border: `1px solid ${cfg.border}`,
+        background: cfg.bg,
+        textDecoration: 'none',
+        transition: 'background 150ms ease',
+      }}
     >
-      <TrendingUp size={12} className={`${cfg.color} mt-0.5 flex-shrink-0`} />
+      <TrendingUp size={12} style={{ color: cfg.color, marginTop: 2, flexShrink: 0 }} />
       <div>
-        <div className="text-xs font-medium text-slate-100 leading-snug">{text}</div>
-        <div className={`text-[10px] mt-0.5 ${cfg.color}`}>{cfg.label}</div>
+        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', lineHeight: 1.4 }}>{text}</div>
+        <div style={{ fontSize: 10, fontWeight: 600, color: cfg.color, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{cfg.label}</div>
       </div>
     </Link>
   );
@@ -128,13 +132,8 @@ export function DashboardPage() {
   useEffect(() => { fetchNotes(); }, [fetchNotes]);
   useEffect(() => {
     insightsApi.getInsights()
-      .then((r) => {
-        setInsights(r.data);
-        setInsightsLoading(false);
-      })
-      .catch(() => {
-        setInsightsLoading(false);
-      });
+      .then((r) => { setInsights(r.data); setInsightsLoading(false); })
+      .catch(() => { setInsightsLoading(false); });
   }, []);
 
   const firstName = user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'there';
@@ -142,148 +141,163 @@ export function DashboardPage() {
   const trendCount = insights?.trends?.length ?? 0;
   const profile = user?.personality_profile as unknown as Record<string, number> | null ?? null;
   const profilePct = profileCompletion(profile);
-
-  // OCEAN sub-scores for rings (default 0 if no profile yet)
-  const patternsPct = insights?.trends?.length
-    ? Math.min(Math.round((insights.trends.length / 5) * 100), 100)
-    : 0;
-  const valuesPct = profile
-    ? Math.round(((profile.agreeableness ?? 0) + (profile.conscientiousness ?? 0)) / 2 * 100)
-    : 0;
-
-  // Last assistant message for the "twin says" card
   const lastTwinMsg = [...messages].reverse().find((m) => m.role === 'assistant');
   const recentNotes = notes.slice(0, 3);
   const recentTrends = (insights?.trends ?? []).slice(0, 2);
 
   return (
-    <div className="relative min-h-screen">
-      {/* Cinematic Nature Background */}
-      <div className="fixed inset-0 z-0 overflow-hidden">
-        <img 
-          src={dashboardBg} 
-          alt="Dashboard Background" 
-          className="w-full h-full object-cover scale-105" // Slight scale for a bit of room
-        />
-        {/* Deep Overlay for content readability */}
-        <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/60 to-black/40 backdrop-blur-[2px]" />
-      </div>
+    <div style={{ background: 'var(--surface)', minHeight: '100vh' }}>
 
-      {/* Content Layer */}
-      <div className="relative z-10 px-8 py-8 max-w-[1100px]">
-        {/* Greeting */}
+      {/* Sunset hero greeting band */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #FDF0CC 0%, #F9C87A 40%, #F07B22 75%, #D94F10 100%)',
+          padding: '48px 32px 44px',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Decorative circle */}
+        <div style={{
+          position: 'absolute', width: 400, height: 400,
+          borderRadius: '50%', background: 'rgba(255,255,255,0.06)',
+          top: -150, right: -80, pointerEvents: 'none',
+        }} />
         <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="mb-10"
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+          style={{ position: 'relative', zIndex: 10, maxWidth: 1100 }}
         >
-          <div className="text-sm font-medium text-emerald-400 mb-1 opacity-80">{getGreeting()}</div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
+          <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.7)', marginBottom: 8 }}>
+            {getGreeting()}
+          </p>
+          <h1
+            style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontWeight: 400,
+              fontSize: 'clamp(28px,4vw,42px)',
+              lineHeight: 1.1,
+              color: 'white',
+              letterSpacing: '-0.5px',
+              marginBottom: 10,
+            }}
+          >
             Welcome back, {firstName}.
           </h1>
-          <p className="mt-2 text-sm text-slate-300 max-w-lg leading-relaxed">
+          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.72)', maxWidth: 480, lineHeight: 1.55 }}>
             {memoryCount === 0
               ? 'Add your first memory to start training your twin.'
-              : `Your twin has been processing your last ${memoryCount} ${memoryCount === 1 ? 'memory' : 'memories'}.`}
+              : `Your twin has processed ${memoryCount} ${memoryCount === 1 ? 'memory' : 'memories'}.`}
           </p>
         </motion.div>
+        {/* Sunset stripe */}
+        <div className="sunset-stripe" style={{ position: 'absolute', bottom: 0, left: 0 }} />
+      </div>
+
+      {/* Main content */}
+      <div style={{ padding: '32px', maxWidth: 1100 }}>
 
         {/* Stats row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-          <StatCard icon={FileText} label="Memories"    value={memoryCount}  sub="thoughts stored"   to="/notes"    delay={0} />
-          <StatCard icon={BarChart2} label="Insights"   value={trendCount}   sub="patterns found"    to="/insights" color="text-violet-300" delay={60} />
-          <StatCard icon={Zap}       label="Simulations" value={0}            sub="decisions run"     to="/insights" color="text-amber-300"  delay={120} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
+          <StatCard icon={FileText}  label="Memories"    value={memoryCount} sub="thoughts stored" to="/notes"    delay={0}   />
+          <StatCard icon={BarChart2} label="Insights"    value={trendCount}  sub="patterns found"  to="/insights" delay={60}  accentColor="#8b5cf6" />
+          <StatCard icon={Zap}       label="Simulations" value={0}           sub="decisions run"   to="/insights" delay={120} accentColor="#f59e0b" />
           {(() => {
             const profileStatus = user?.personality_profile
               ? 'Complete'
               : memoryCount >= 10
-                ? 'Ready to analyze'
-                : `${memoryCount} / 10 memories`;
-            
+                ? 'Ready'
+                : `${memoryCount}/10`;
             const profileSub = user?.personality_profile
               ? 'personality mapped'
               : memoryCount >= 10
                 ? 'tap to run analysis'
                 : 'memories needed';
-
-            const statusColor = profileStatus === 'Complete' 
-              ? 'text-emerald-400' 
-              : profileStatus === 'Ready to analyze' 
-                ? 'text-primary' 
-                : 'text-white';
-
             return (
-              <StatCard 
-                icon={Brain} 
-                label="Twin Profile" 
-                value={profileStatus} 
-                sub={profileSub} 
-                to="/profile" 
-                color="text-emerald-300" 
+              <StatCard
+                icon={Brain}
+                label="Twin Profile"
+                value={profileStatus}
+                sub={profileSub}
+                to="/profile"
                 delay={180}
-                style={{ 
-                  cursor: profileSub === 'tap to run analysis' ? 'pointer' : undefined,
-                  fontSize: profileStatus.length > 6 ? '18px' : '28px'
-                }}
+                accentColor="#10b981"
+                style={{ fontSize: profileStatus.length > 8 ? '20px' : '28px' }}
               />
             );
           })()}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* 2-col layout */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24 }}>
+
           {/* Left: main content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
             {/* Twin message card */}
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.24, ease: 'easeOut' }}
-              className="backdrop-blur-xl bg-white/5 border border-white/10 p-6 rounded-3xl border-l-4 border-l-emerald-500 shadow-2xl"
+              transition={{ duration: 0.3, delay: 0.22, ease: 'easeOut' }}
+              className="card"
+              style={{ borderLeft: '3px solid var(--primary)' }}
             >
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
-                  <Brain size={20} className="text-emerald-400" />
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: 10,
+                  background: 'rgba(247,97,30,0.1)',
+                  border: '1px solid rgba(247,97,30,0.2)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
+                }}>
+                  <Brain size={18} style={{ color: 'var(--primary)' }} />
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-sm font-bold text-white tracking-wide">Digital Twin</span>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 text-[10px] font-bold uppercase tracking-wider">
-                      {messages.length > 0 ? 'online' : 'syncing'}
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>Digital Twin</span>
+                    <span style={{
+                      fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em',
+                      padding: '2px 8px', borderRadius: 999,
+                      background: 'rgba(247,97,30,0.1)', color: 'var(--primary)',
+                      border: '1px solid rgba(247,97,30,0.2)',
+                    }}>
+                      {messages.length > 0 ? 'online' : 'ready'}
                     </span>
                   </div>
                   {lastTwinMsg ? (
                     <>
-                      <p className="text-sm text-slate-200 leading-relaxed italic opacity-90">"{lastTwinMsg.content.slice(0, 220)}{lastTwinMsg.content.length > 220 ? '…' : ''}"</p>
-                      <div className="mt-5">
-                        <AppButton 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => navigate('/chat')}
-                          style={{ paddingLeft: 0, color: 'var(--app-accent)' }}
-                        >
-                          Continue chat <ArrowRight size={13} className="ml-1" />
-                        </AppButton>
-                      </div>
+                      <p style={{ fontSize: 14, color: 'var(--charcoal)', lineHeight: 1.6, fontStyle: 'italic' }}>
+                        "{lastTwinMsg.content.slice(0, 220)}{lastTwinMsg.content.length > 220 ? '…' : ''}"
+                      </p>
+                      <button
+                        onClick={() => navigate('/chat')}
+                        style={{
+                          marginTop: 16, background: 'none', border: 'none', cursor: 'pointer',
+                          color: 'var(--primary)', fontSize: 13, fontWeight: 600,
+                          display: 'flex', alignItems: 'center', gap: 4, padding: 0,
+                        }}
+                      >
+                        Continue chat <ArrowRight size={13} />
+                      </button>
                     </>
                   ) : (
                     <>
-                      <p className="text-sm text-slate-300 leading-relaxed opacity-80">
+                      <p style={{ fontSize: 14, color: 'var(--slate)', lineHeight: 1.6 }}>
                         {memoryCount === 0
                           ? "I'm ready to learn from you. Add some memories to begin the alignment process."
                           : `Alignment is at ${profilePct}%. I have indexed ${memoryCount} memories. Let's explore your data.`}
                       </p>
-                      <div className="mt-5">
-                        <AppButton 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => navigate('/chat')}
-                          style={{ paddingLeft: 0, color: 'var(--app-accent)' }}
-                        >
-                          Initialize Chat <ArrowRight size={13} className="ml-1" />
-                        </AppButton>
-                      </div>
+                      <button
+                        onClick={() => navigate('/chat')}
+                        style={{
+                          marginTop: 16, background: 'none', border: 'none', cursor: 'pointer',
+                          color: 'var(--primary)', fontSize: 13, fontWeight: 600,
+                          display: 'flex', alignItems: 'center', gap: 4, padding: 0,
+                        }}
+                      >
+                        Start chatting <ArrowRight size={13} />
+                      </button>
                     </>
                   )}
                 </div>
@@ -295,53 +309,41 @@ export function DashboardPage() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.3, ease: 'easeOut' }}
-              className="backdrop-blur-lg bg-black/20 border border-white/5 p-6 rounded-3xl"
+              className="card"
             >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-sm font-bold text-white uppercase tracking-widest opacity-80">Recent Memories</h3>
-                <Link
-                  to="/notes"
-                  className="text-[10px] font-bold text-slate-400 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-1.5"
-                >
-                  History <ArrowRight size={10} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Recent Memories</h3>
+                <Link to="/notes" style={{ fontSize: 12, fontWeight: 600, color: 'var(--primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  View all <ArrowRight size={11} />
                 </Link>
               </div>
+
               {recentNotes.length === 0 ? (
-                <div className="text-center py-10">
-                  <FileText size={24} className="text-slate-600 mx-auto mb-3" />
-                  <p className="text-xs text-slate-500 font-medium tracking-wide">No memories indexed yet.</p>
+                <div style={{ textAlign: 'center', padding: '32px 0' }}>
+                  <FileText size={24} style={{ color: 'var(--muted-text)', margin: '0 auto 12px' }} />
+                  <p style={{ fontSize: 13, color: 'var(--steel)' }}>No memories yet.</p>
                   <button
                     onClick={() => navigate('/notes')}
-                    className="mt-4 text-[10px] font-bold text-emerald-400 hover:text-emerald-300 transition-colors uppercase tracking-widest"
+                    className="btn-primary"
+                    style={{ marginTop: 16, fontSize: 13 }}
                   >
-                    Create First Memory →
+                    Add First Memory
                   </button>
                 </div>
               ) : (
-                <div className="divide-y divide-white/5">
+                <div>
                   {recentNotes.map((note, index) => (
-                    <div key={note.id} style={{
-                      padding: '12px 0',
-                      borderBottom: index < recentNotes.length - 1
-                        ? '1px solid var(--app-border)' : 'none'
-                    }}>
-                      <p style={{
-                        fontSize: '14px',
-                        color: 'var(--app-text)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        lineHeight: '1.5',
-                        margin: 0
-                      }}>
+                    <div
+                      key={note.id}
+                      style={{
+                        padding: '12px 0',
+                        borderBottom: index < recentNotes.length - 1 ? '1px solid var(--hairline-soft)' : 'none',
+                      }}
+                    >
+                      <p style={{ fontSize: 14, color: 'var(--charcoal)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.5, margin: 0 }}>
                         {note.content}
                       </p>
-                      <p style={{
-                        fontSize: '11px',
-                        color: 'var(--app-faint)',
-                        marginTop: '3px',
-                        fontFamily: 'monospace'
-                      }}>
+                      <p style={{ fontSize: 11, color: 'var(--steel)', marginTop: 3 }}>
                         {formatRelativeTime(note.created_at)}
                       </p>
                     </div>
@@ -352,52 +354,53 @@ export function DashboardPage() {
           </div>
 
           {/* Right panel */}
-          <div className="space-y-6">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
+            {/* Profile or alignment */}
             {!user?.personality_profile ? (
-              <AppCard 
-                padding="20px" 
-                onClick={() => navigate('/profile')} 
-                lift
-                className="shadow-xl"
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+                className="card-cream"
+                style={{ cursor: 'pointer', padding: 24 }}
+                onClick={() => navigate('/profile')}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <User size={16} className="text-emerald-400" />
-                  <h3 className="text-[14px] font-semibold text-white">Complete Your Profile</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <User size={16} style={{ color: 'var(--primary)' }} />
+                  <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>Complete Your Profile</h3>
                 </div>
-                <p className="text-[12px] text-slate-400 leading-relaxed">
+                <p style={{ fontSize: 13, color: 'var(--slate)', lineHeight: 1.55 }}>
                   Run a personality analysis to unlock alignment tracking.
                 </p>
-                <div className="mt-3">
-                  <AppButton variant="primary" size="sm">Analyze Now</AppButton>
-                </div>
-              </AppCard>
+                <button className="btn-primary" style={{ marginTop: 16, fontSize: 13, padding: '8px 16px' }}>
+                  Analyze Now
+                </button>
+              </motion.div>
             ) : (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.2, ease: 'easeOut' }}
-                className="backdrop-blur-md bg-white/5 border border-white/10 p-6 rounded-3xl shadow-xl"
+                transition={{ duration: 0.3, delay: 0.2 }}
+                className="card"
+                style={{ padding: 24 }}
               >
-                <h3 className="text-xs font-bold text-white mb-6 uppercase tracking-widest opacity-80">Alignment Progress</h3>
-                <div className="space-y-4">
+                <h3 style={{ fontSize: 12, fontWeight: 600, color: 'var(--steel)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 20 }}>
+                  Alignment Progress
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   {[
                     { label: 'Core Memory', val: (profile?.openness ?? 0) * 100 },
                     { label: 'Reasoning', val: (profile?.conscientiousness ?? 0) * 100 },
-                    { label: 'Ethics Profile', val: (profile?.agreeableness ?? 0) * 100 },
+                    { label: 'Ethics', val: (profile?.agreeableness ?? 0) * 100 },
                   ].map((row, i) => (
-                    <div key={i} className="flex flex-col gap-1.5">
-                      <div className="flex justify-between items-end">
-                        <span className="text-[13px] text-slate-400">{row.label}</span>
-                        <span className="text-[12px] font-mono text-slate-500">{Math.round(row.val)}%</span>
+                    <div key={i}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 6 }}>
+                        <span style={{ fontSize: 13, color: 'var(--slate)' }}>{row.label}</span>
+                        <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--steel)' }}>{Math.round(row.val)}%</span>
                       </div>
-                      <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                        <motion.div 
-                          initial={{ width: 0 }}
-                          animate={{ width: `${row.val}%` }}
-                          transition={{ duration: 0.8, ease: 'easeOut', delay: 0.4 + (i * 0.1) }}
-                          className="h-full bg-emerald-500"
-                        />
+                      <div style={{ height: 4, background: 'var(--hairline)', borderRadius: 999, overflow: 'hidden' }}>
+                        <div style={{ width: `${row.val}%`, height: '100%', background: 'var(--primary)', borderRadius: 999, transition: 'width 0.8s ease' }} />
                       </div>
                     </div>
                   ))}
@@ -405,33 +408,33 @@ export function DashboardPage() {
               </motion.div>
             )}
 
-            {/* Latest insights */}
+            {/* Insights */}
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.28, ease: 'easeOut' }}
-              className="backdrop-blur-md bg-white/5 border border-white/10 p-6 rounded-3xl"
+              transition={{ duration: 0.3, delay: 0.28 }}
+              className="card"
+              style={{ padding: 24 }}
             >
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <Sparkles size={16} className="text-emerald-400" />
-                  <h3 className="text-xs font-bold text-white uppercase tracking-widest opacity-80">Cognitive Insights</h3>
-                </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                <Sparkles size={15} style={{ color: 'var(--primary)' }} />
+                <h3 style={{ fontSize: 12, fontWeight: 600, color: 'var(--steel)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  Cognitive Insights
+                </h3>
               </div>
               {insightsLoading ? (
-                <div className="space-y-[10px] py-2">
-                  <div className="shimmer-effect h-[12px] w-full rounded-[4px]" />
-                  <div className="shimmer-effect h-[12px] w-[80%] rounded-[4px]" />
-                  <div className="shimmer-effect h-[12px] w-[60%] rounded-[4px]" />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 4 }}>
+                  {[100, 80, 60].map((w, i) => (
+                    <div key={i} className="shimmer-effect" style={{ height: 12, width: `${w}%`, borderRadius: 4 }} />
+                  ))}
                 </div>
               ) : recentTrends.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-4 text-center">
-                  <Sparkles size={20} className="text-slate-500 opacity-40" />
-                  <p className="text-[13px] text-slate-400 mt-2 font-medium">Add more memories to generate insights.</p>
-                  <p className="text-[11px] text-slate-500 mt-1">Insights appear after 5+ memories.</p>
+                <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                  <Sparkles size={20} style={{ color: 'var(--muted-text)', margin: '0 auto 8px', display: 'block' }} />
+                  <p style={{ fontSize: 13, color: 'var(--slate)' }}>Add more memories to generate insights.</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {recentTrends.map((trend, i) => (
                     <InsightChip key={i} text={trend} index={i} />
                   ))}
@@ -439,22 +442,27 @@ export function DashboardPage() {
               )}
             </motion.div>
 
-            {/* Quick action */}
+            {/* Quick CTA */}
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.36, ease: 'easeOut' }}
+              transition={{ duration: 0.3, delay: 0.35 }}
             >
               <Link
                 to="/chat"
-                className="block backdrop-blur-xl bg-emerald-500/10 border border-emerald-500/20 p-5 text-center group rounded-3xl hover:bg-emerald-500/20 transition-all duration-300"
+                style={{
+                  display: 'block',
+                  background: 'var(--primary)',
+                  borderRadius: 12,
+                  padding: '20px 24px',
+                  textAlign: 'center',
+                  textDecoration: 'none',
+                  transition: 'background 150ms ease, transform 150ms ease',
+                }}
               >
-                <MessageSquare
-                  size={20}
-                  className="text-emerald-400 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300"
-                />
-                <div className="text-sm font-bold text-white mb-1 tracking-wide">Talk to your Twin</div>
-                <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest opacity-80">
+                <MessageSquare size={20} style={{ color: 'white', margin: '0 auto 10px', display: 'block' }} />
+                <div style={{ fontSize: 14, fontWeight: 600, color: 'white', marginBottom: 4 }}>Talk to your Twin</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   {memoryCount > 0 ? `${memoryCount} memories indexed` : 'Start alignment'}
                 </div>
               </Link>
@@ -462,6 +470,9 @@ export function DashboardPage() {
 
           </div>
         </div>
+
+        {/* Sunset stripe footer */}
+        <div className="sunset-stripe" style={{ marginTop: 48, borderRadius: 4 }} />
       </div>
     </div>
   );

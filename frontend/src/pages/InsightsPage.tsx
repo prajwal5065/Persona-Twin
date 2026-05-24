@@ -1,48 +1,27 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  TrendingUp, Brain, Lightbulb, AlertTriangle, 
-  Shield, ChevronRight, BarChart2 
+import {
+  TrendingUp, Brain, Lightbulb, AlertTriangle,
+  Shield, ChevronRight, BarChart2
 } from 'lucide-react';
 import { insightsApi } from '../api/insights.api';
 import { useNotesStore } from '../store/notes.store';
 import type { InsightResponse } from '../types';
-import PageHeader from '../components/PageHeader';
 
 // ─── configuration ───────────────────────────────────────────────────────────
 
 const typeIcons = {
-  pattern: TrendingUp,
+  pattern:     TrendingUp,
   observation: Brain,
-  tension: AlertTriangle,
-  strength: Shield,
+  tension:     AlertTriangle,
+  strength:    Shield,
 };
 
 const insightTypeConfig: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  pattern: {
-    label: 'Behavioral Pattern',
-    color: 'text-blue-400',
-    bg: 'bg-blue-500/10',
-    border: 'border-blue-500/20',
-  },
-  observation: {
-    label: 'Cognitive Observation',
-    color: 'text-violet-400',
-    bg: 'bg-violet-500/10',
-    border: 'border-violet-500/20',
-  },
-  tension: {
-    label: 'Cognitive Tension',
-    color: 'text-amber-400',
-    bg: 'bg-amber-500/10',
-    border: 'border-amber-500/20',
-  },
-  strength: {
-    label: 'Core Strength',
-    color: 'text-emerald-400',
-    bg: 'bg-emerald-500/10',
-    border: 'border-emerald-500/20',
-  },
+  pattern:     { label: 'Behavioral Pattern',    color: '#3b82f6', bg: 'rgba(59,130,246,0.07)',  border: 'rgba(59,130,246,0.2)' },
+  observation: { label: 'Cognitive Observation', color: '#8b5cf6', bg: 'rgba(139,92,246,0.07)', border: 'rgba(139,92,246,0.2)' },
+  tension:     { label: 'Cognitive Tension',     color: '#f59e0b', bg: 'rgba(245,158,11,0.07)', border: 'rgba(245,158,11,0.2)' },
+  strength:    { label: 'Core Strength',         color: '#10b981', bg: 'rgba(16,185,129,0.07)', border: 'rgba(16,185,129,0.2)' },
 };
 
 // ─── types ───────────────────────────────────────────────────────────────────
@@ -59,18 +38,18 @@ interface Insight {
 
 // ─── components ──────────────────────────────────────────────────────────────
 
-function ConfidenceBar({ value }: { value: number }) {
+function ConfidenceBar({ value, color }: { value: number; color: string }) {
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 h-1 bg-surface-700 rounded-full overflow-hidden">
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ flex: 1, height: 4, background: 'var(--hairline)', borderRadius: 999, overflow: 'hidden' }}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${value}%` }}
           transition={{ duration: 1, ease: 'easeOut' }}
-          className="h-full bg-accent-500 rounded-full"
+          style={{ height: '100%', background: color, borderRadius: 999 }}
         />
       </div>
-      <span className="text-[11px] text-accent-400 font-mono font-medium w-8">{value}%</span>
+      <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 600, color, width: 32, textAlign: 'right' }}>{value}%</span>
     </div>
   );
 }
@@ -84,32 +63,40 @@ function InsightCard({ insight, index }: { insight: Insight; index: number }) {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.06 }}
-      className="card-hover p-5 cursor-pointer"
+      transition={{ duration: 0.28, delay: index * 0.06 }}
+      className="card-hover"
       onClick={() => setExpanded(!expanded)}
+      style={{ cursor: 'pointer' }}
     >
-      <div className="flex items-start gap-4">
-        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border ${config.bg} ${config.border}`}>
-          <Icon size={15} className={config.color} />
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: config.bg, border: `1px solid ${config.border}`,
+        }}>
+          <Icon size={15} style={{ color: config.color }} />
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2 mb-1">
-            <h3 className="text-sm font-semibold text-white leading-snug">{insight.title}</h3>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.4 }}>{insight.title}</h3>
             <ChevronRight
               size={14}
-              className={`text-muted-foreground flex-shrink-0 mt-0.5 transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
+              style={{ color: 'var(--steel)', flexShrink: 0, marginTop: 2, transform: expanded ? 'rotate(90deg)' : 'none', transition: 'transform 200ms' }}
             />
           </div>
-          <div className="flex items-center gap-2 mb-3">
-            <span className={`badge border text-[10px] ${config.bg} ${config.color} ${config.border}`}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span style={{
+              fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
+              padding: '2px 8px', borderRadius: 999,
+              color: config.color, background: config.bg, border: `1px solid ${config.border}`,
+            }}>
               {config.label}
             </span>
-            <span className="text-[10px] text-muted-foreground">{insight.dataPoints} data points</span>
-            <span className="text-[10px] text-muted-foreground">·</span>
-            <span className="text-[10px] text-muted-foreground">{insight.date}</span>
+            <span style={{ fontSize: 11, color: 'var(--steel)' }}>{insight.dataPoints} data points</span>
+            <span style={{ fontSize: 11, color: 'var(--muted-text)' }}>·</span>
+            <span style={{ fontSize: 11, color: 'var(--steel)' }}>{insight.date}</span>
           </div>
-
-          <ConfidenceBar value={insight.confidence} />
+          <ConfidenceBar value={insight.confidence} color={config.color} />
 
           <AnimatePresence>
             {expanded && (
@@ -117,9 +104,12 @@ function InsightCard({ insight, index }: { insight: Insight; index: number }) {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden"
+                style={{ overflow: 'hidden' }}
               >
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed border-t border-surface-700 pt-3">
+                <p style={{
+                  marginTop: 12, fontSize: 13, color: 'var(--slate)', lineHeight: 1.65,
+                  borderTop: '1px solid var(--hairline-soft)', paddingTop: 12,
+                }}>
                   {insight.description}
                 </p>
               </motion.div>
@@ -132,29 +122,30 @@ function InsightCard({ insight, index }: { insight: Insight; index: number }) {
 }
 
 function ActivityChart({ distribution }: { distribution: Record<string, number> }) {
-  const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  // Map periods to days for visualization if actual daily data isn't available
   const periods = ['morning', 'afternoon', 'evening', 'night'];
   const values = periods.map(p => distribution[p] || 0);
   const max = Math.max(...values, 1);
 
   return (
-    <div className="card p-5">
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-sm font-semibold text-white">Daily Memory Activity</span>
-        <span className="section-label">Distribution</span>
+    <div className="card" style={{ padding: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>Daily Activity</span>
+        <span style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--steel)' }}>Distribution</span>
       </div>
-      <div className="flex items-end gap-2 h-16">
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 64 }}>
         {periods.map((p, i) => (
-          <div key={p} className="flex-1 flex flex-col items-center gap-1">
-            <div className="w-full relative group">
-              <motion.div
-                initial={{ height: 0 }}
-                animate={{ height: `${(values[i] / max) * 48}px` }}
-                className="w-full rounded-sm bg-accent-500/20 hover:bg-accent-500/40 transition-all duration-300 cursor-pointer min-h-[4px]"
-              />
-            </div>
-            <span className="text-[9px] text-muted-foreground uppercase">{p.slice(0, 3)}</span>
+          <div key={p} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', justifyContent: 'flex-end' }}>
+            <motion.div
+              initial={{ height: 0 }}
+              animate={{ height: `${(values[i] / max) * 48}px` }}
+              transition={{ duration: 0.7, ease: 'easeOut', delay: i * 0.1 }}
+              style={{
+                width: '100%', borderRadius: 4, minHeight: 4,
+                background: 'rgba(247,97,30,0.2)',
+                cursor: 'pointer',
+              }}
+            />
+            <span style={{ fontSize: 9, textTransform: 'uppercase', color: 'var(--steel)', letterSpacing: '0.05em' }}>{p.slice(0, 3)}</span>
           </div>
         ))}
       </div>
@@ -183,17 +174,16 @@ export function InsightsPage() {
     })();
   }, []);
 
-  // Map trends to the Insight structure
   const insights: Insight[] = (data?.trends || []).map((trend, i) => {
     const types: Insight['type'][] = ['pattern', 'observation', 'tension', 'strength'];
     return {
       id: `insight-${i}`,
       type: types[i % types.length],
       title: trend,
-      dataPoints: Math.floor(Math.random() * 20) + 5, // Simulated
+      dataPoints: Math.floor(Math.random() * 20) + 5,
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      confidence: 80 + Math.floor(Math.random() * 15), // Simulated
-      description: data?.summary || "Analyzing patterns in your cognitive fingerprint based on your memories."
+      confidence: 80 + Math.floor(Math.random() * 15),
+      description: data?.summary || 'Analyzing patterns in your cognitive fingerprint based on your memories.',
     };
   });
 
@@ -201,105 +191,156 @@ export function InsightsPage() {
   const filtered = activeFilter === 'all' ? insights : insights.filter(i => i.type === activeFilter);
 
   return (
-    <div className="px-8 py-8">
-      <PageHeader
-        title="Insights"
-        subtitle="Analysis of your patterns, behaviors, and cognitive fingerprint."
-      />
+    <div style={{ background: 'var(--surface)', minHeight: '100vh' }}>
 
-      {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
-        {[
-          { label: 'Patterns Found', value: insights.length.toString(), sub: 'this month', icon: TrendingUp, color: 'text-blue-400' },
-          { label: 'Avg Confidence', value: insights.length ? `${Math.round(insights.reduce((acc, i) => acc + i.confidence, 0) / insights.length)}%` : '0%', sub: 'across insights', icon: Brain, color: 'text-violet-400' },
-          { label: 'Data Points', value: notes.length.toString(), sub: 'memories analyzed', icon: BarChart2, color: 'text-emerald-400' },
-          { label: 'Twin Frequency', value: data?.patterns?.frequency || 'Normal', sub: 'interaction level', icon: Lightbulb, color: 'text-amber-400' },
-        ].map(({ label, value, sub, icon: Icon, color }) => (
-          <motion.div 
-            key={label} 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="card p-4"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <span className="section-label">{label}</span>
-              <Icon size={14} className={color} />
-            </div>
-            <div className="text-2xl font-bold text-white mb-0.5">{value}</div>
-            <div className="text-[11px] text-muted-foreground">{sub}</div>
-          </motion.div>
-        ))}
+      {/* Page header */}
+      <div style={{
+        background: 'var(--canvas)',
+        borderBottom: '1px solid var(--hairline-soft)',
+        padding: '28px 32px 24px',
+      }}>
+        <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--steel)', marginBottom: 6 }}>
+          Analysis
+        </p>
+        <h1 style={{
+          fontFamily: "'Playfair Display', Georgia, serif",
+          fontWeight: 400, fontSize: 32, color: 'var(--ink)',
+          letterSpacing: '-0.5px', lineHeight: 1.15,
+        }}>
+          Insights
+        </h1>
+        <p style={{ fontSize: 14, color: 'var(--slate)', marginTop: 6 }}>
+          Analysis of your patterns, behaviors, and cognitive fingerprint.
+        </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        {/* Insights list */}
-        <div className="col-span-2 space-y-4">
-          {/* Filter tabs */}
-          <div className="flex items-center gap-1 p-1 bg-surface-800 border border-surface-700 rounded-lg w-fit">
-            {types.map(type => (
-              <button
-                key={type}
-                onClick={() => setActiveFilter(type)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium capitalize transition-all duration-200 ${
-                  activeFilter === type
-                    ? 'bg-surface-600 text-white shadow-sm'
-                    : 'text-muted-foreground hover:text-slate-300'
-                }`}
-              >
-                {type}
-              </button>
-            ))}
-          </div>
+      {/* Sunset stripe */}
+      <div className="sunset-stripe" />
 
-          <div className="space-y-3">
-            {loading ? (
-              [...Array(3)].map((_, i) => (
-                <div key={i} className="h-24 card animate-pulse" />
-              ))
-            ) : filtered.length === 0 ? (
-              <div className="card p-8 text-center">
-                <p className="text-sm text-muted-foreground">No insights found for this filter.</p>
+      {/* Content */}
+      <div style={{ padding: '28px 32px' }}>
+
+        {/* Stats row */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 28 }}>
+          {[
+            { label: 'Patterns Found',  value: insights.length.toString(), sub: 'this month',     icon: TrendingUp, color: '#3b82f6' },
+            { label: 'Avg Confidence',  value: insights.length ? `${Math.round(insights.reduce((acc, i) => acc + i.confidence, 0) / insights.length)}%` : '0%', sub: 'across insights', icon: Brain, color: '#8b5cf6' },
+            { label: 'Data Points',     value: notes.length.toString(), sub: 'memories analyzed', icon: BarChart2,  color: '#10b981' },
+            { label: 'Interaction',     value: data?.patterns?.frequency || 'Normal', sub: 'activity level', icon: Lightbulb, color: '#f59e0b' },
+          ].map(({ label, value, sub, icon: Icon, color }) => (
+            <motion.div
+              key={label}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="card"
+              style={{ padding: 20 }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
+                <span style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--steel)' }}>{label}</span>
+                <Icon size={14} style={{ color }} />
               </div>
-            ) : (
-              filtered.map((insight, i) => (
-                <InsightCard key={insight.id} insight={insight} index={i} />
-              ))
-            )}
-          </div>
+              <div style={{
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontWeight: 400, fontSize: 28, color: 'var(--ink)', lineHeight: 1, marginBottom: 4,
+              }}>{value}</div>
+              <div style={{ fontSize: 11, color: 'var(--steel)' }}>{sub}</div>
+            </motion.div>
+          ))}
         </div>
 
-        {/* Side panel */}
-        <div className="space-y-4">
-          {data && <ActivityChart distribution={data.patterns.activity_distribution} />}
+        {/* Main 2-col layout */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 24 }}>
 
-          {/* Topic coverage */}
-          <div className="card p-5">
-            <span className="section-label block mb-4">Cognitive Coverage</span>
-            <div className="space-y-3">
-              {[
-                { label: 'Openness', pct: 72, color: 'bg-violet-500' },
-                { label: 'Focus', pct: 58, color: 'bg-blue-500' },
-                { label: 'Values', pct: 45, color: 'bg-emerald-500' },
-                { label: 'Social', pct: 31, color: 'bg-rose-500' },
-                { label: 'Creativity', pct: 28, color: 'bg-amber-500' },
-              ].map(({ label, pct, color }) => (
-                <div key={label}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-slate-300">{label}</span>
-                    <span className="text-[10px] text-muted-foreground font-mono">{pct}%</span>
-                  </div>
-                  <div className="h-1 bg-surface-700 rounded-full overflow-hidden">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${pct}%` }}
-                      className={`h-full ${color} rounded-full transition-all duration-700`} 
-                    />
-                  </div>
-                </div>
+          {/* Insights list */}
+          <div>
+            {/* Filter tabs */}
+            <div style={{
+              display: 'flex', gap: 4, padding: 4,
+              background: 'var(--canvas)',
+              border: '1px solid var(--hairline)',
+              borderRadius: 10,
+              width: 'fit-content',
+              marginBottom: 20,
+            }}>
+              {types.map(type => (
+                <button
+                  key={type}
+                  onClick={() => setActiveFilter(type)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: 7,
+                    fontSize: 12,
+                    fontWeight: 500,
+                    textTransform: 'capitalize',
+                    cursor: 'pointer',
+                    border: 'none',
+                    transition: 'all 150ms ease',
+                    ...(activeFilter === type
+                      ? { background: 'var(--ink)', color: '#FFFFFF' }
+                      : { background: 'transparent', color: 'var(--steel)' }),
+                  }}
+                >
+                  {type}
+                </button>
               ))}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {loading ? (
+                [...Array(3)].map((_, i) => (
+                  <div key={i} className="card shimmer-effect" style={{ height: 96 }} />
+                ))
+              ) : filtered.length === 0 ? (
+                <div className="card" style={{ padding: 40, textAlign: 'center' }}>
+                  <p style={{ fontSize: 14, color: 'var(--slate)' }}>No insights for this filter.</p>
+                </div>
+              ) : (
+                filtered.map((insight, i) => (
+                  <InsightCard key={insight.id} insight={insight} index={i} />
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Side panel */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {data && <ActivityChart distribution={data.patterns.activity_distribution} />}
+
+            {/* Cognitive coverage */}
+            <div className="card" style={{ padding: 20 }}>
+              <span style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--steel)', marginBottom: 16 }}>
+                Cognitive Coverage
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {[
+                  { label: 'Openness',    pct: 72, color: '#8b5cf6' },
+                  { label: 'Focus',       pct: 58, color: '#3b82f6' },
+                  { label: 'Values',      pct: 45, color: '#10b981' },
+                  { label: 'Social',      pct: 31, color: '#e11d48' },
+                  { label: 'Creativity',  pct: 28, color: 'var(--primary)' },
+                ].map(({ label, pct, color }) => (
+                  <div key={label}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+                      <span style={{ fontSize: 12, color: 'var(--charcoal)', fontWeight: 500 }}>{label}</span>
+                      <span style={{ fontSize: 10, fontFamily: 'monospace', color: 'var(--steel)' }}>{pct}%</span>
+                    </div>
+                    <div style={{ height: 4, background: 'var(--hairline)', borderRadius: 999, overflow: 'hidden' }}>
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${pct}%` }}
+                        transition={{ duration: 0.8 }}
+                        style={{ height: '100%', background: color, borderRadius: 999 }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Sunset stripe */}
+        <div className="sunset-stripe" style={{ marginTop: 48, borderRadius: 4 }} />
       </div>
     </div>
   );

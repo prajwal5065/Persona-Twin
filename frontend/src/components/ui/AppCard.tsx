@@ -9,6 +9,8 @@ interface AppCardProps {
   dashed?: boolean;
   /** Lift on hover — adds translateY(-1px) */
   lift?: boolean;
+  /** Use cream surface variant */
+  cream?: boolean;
 }
 
 export function AppCard({
@@ -19,18 +21,26 @@ export function AppCard({
   style,
   dashed,
   lift,
+  cream,
 }: AppCardProps) {
   const [hovered, setHovered] = useState(false);
   const interactive = !!(onClick || lift);
 
   const base: CSSProperties = {
-    background: 'var(--app-surface)',
-    border: `1px ${dashed ? 'dashed' : 'solid'} ${hovered && interactive ? 'var(--app-border2)' : 'var(--app-border)'}`,
-    borderRadius: '10px',
+    background: cream ? 'var(--cream)' : 'var(--canvas)',
+    border: `1px ${dashed ? 'dashed' : 'solid'} ${
+      cream
+        ? 'var(--beige-deep)'
+        : hovered && interactive
+          ? 'var(--beige-deep)'
+          : 'var(--hairline-soft)'
+    }`,
+    borderRadius: '12px',
     padding,
     cursor: onClick ? 'pointer' : undefined,
-    transition: 'border-color 150ms ease, transform 150ms ease, background 150ms ease',
+    transition: 'border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease',
     transform: hovered && lift ? 'translateY(-1px)' : 'none',
+    boxShadow: hovered && lift ? 'rgba(0,0,0,0.04) 0px 4px 12px 0px' : 'none',
     ...style,
   };
 
